@@ -10,7 +10,7 @@ let wfConfig = {
     },
 
     custom: {
-        families: ['FerrumExtracondensed','Triforce'],
+        families: ['FerrumExtracondensed'],
         urls: ["https://fontlibrary.org/face/ferrum"]
     }
 };
