@@ -24,8 +24,6 @@ function startGame() {
     game.state.add('welcome', initialState);
     // About Screen
     game.state.add('about', aboutState);
-    // Config Screen
-    game.state.add('config', configState);
     // Play Screen
     game.state.add('play', playState);
 
