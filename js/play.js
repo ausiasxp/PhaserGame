@@ -52,7 +52,9 @@ function initialiseGame() {
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
     //  A simple background for our game
-    game.add.sprite(0, 0, 'sky');
+    let sky = game.add.sprite(0, 0, 'sky');
+    sky.width = game.world.width;
+    sky.height = game.world.height;
 
     //  The platforms group contains the ground and the 2 ledges we can jump on
     platforms = game.add.group();
