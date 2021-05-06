@@ -1,602 +1,249 @@
-const WORLD_WIDTH = 1100
-const WORLD_HEIGHT = 825
-const MAX_HEALTH = 100;
-/*const MAX_STARS = 40;
-const MAX_AIDS = 30;*/
-const BODY_GRAVITY = 250;
-const PLAYER_VELOCITY = 150;
-const ENEMY_VELOCITY = 75;
-const ENEMY_STEP_LIMIT = 300;
-const ENEMY_DISTANCE_ATTACK = 150;
-const ENEMY_Y_OFFSET = 27;
-const ENEMY_X_OFFSET = 28;
-/*const AID_STAR_Y_OFFSET = 30;*/
-const PLAYER_COLLIDE_OFFSET_X = 35;
-const PLAYER_COLLIDE_OFFSET_Y = 10;
+const VICTORY_POINTS = 500;
+const TOTAL_STARS = 12;
 
-//let levelsData = ['assets/levels/level01.json', 'assets/levels/level02.json'];
+let game = new Phaser.Game(800, 600, Phaser.AUTO, 'game');
 
-let playState = {
-    preload: loadPlayAssets,
-    create: createLevel,
-    update: updateLevel
-    //render: debugGame
+let mainState = {
+    preload: loadAssets,
+    create: initialiseGame,
+    update: gameUpdate
 };
 
-let hudGroup, healthBar, healthValue, healthTween, hudTime;
-let remainingTime;
-//let levelConfig;
-//let platforms, ground;
-let enemies = [];
-let player, cursors;
-let toRight = false;
-//let firstAids, stars;
-//let totalNumOfStars;
-//let soundDamaged, soundCollectStar, soundGetAid, soundHitEnemy, soundOutOfTime, soundLevelPassed;
-let playerPlatform;
-let exit;
-let timerClock;
-let exitingLevel;
+let platforms;
+let player;
+let cursors;
+let stars;
+let bombs;
+let score = 0;
+let scoreText;
+let numStars;
+let gameOver = false;
+let victoryAtEnd;
+let soundVictory;
+let soundDefeat;
 
-/*class Enemy {
-    constructor(spritesheet, tween, plat, right, limit, hits, isPatrolling = true) {
-        this.sprite = spritesheet;
-        this.flash = tween;
-        this.platform = plat;
-        this.faceright = right;
-        this.stepLimit = limit;
-        this.origX = spritesheet.x;
-        this.hitsToBeKilled = hits;
-        this.isPatrolling = isPatrolling;
-    }
+game.state.add('main', mainState);
+//game.state.add('final', finalState);
 
-    getIsPatrolling() {
-        return this.isPatrolling;
-    }
+game.state.start('main');
 
-    setIsPatrolling(patrols) {
-        this.isPatrolling = patrols;
-    }
-
-    getHitsToBeKilled() {
-        return this.hitsToBeKilled;
-    }
-
-    setHitsToBeKilled(hits) {
-        this.hitsToBeKilled = hits;
-    }
-
-    patrol() {
-        this.sprite.body.velocity.x = ENEMY_VELOCITY * this.sprite.scale.x;
-        this.sprite.animations.play('run');
-
-        if (this.faceright) {
-            if (this.sprite.body.x >= this.stepLimit) {
-                this.sprite.body.x = this.stepLimit - ENEMY_X_OFFSET;
-                this.sprite.scale.x *= -1;
-            } else if (this.sprite.body.x <= this.origX) {
-                this.sprite.body.x = this.origX + ENEMY_X_OFFSET;
-                this.sprite.scale.x *= -1;
-            }
-        } else {
-            if (this.sprite.body.x <= this.stepLimit) {
-                this.sprite.body.x = this.stepLimit + ENEMY_X_OFFSET;
-                this.sprite.scale.x *= -1;
-            } else if (this.sprite.body.x >= this.origX) {
-                this.sprite.body.x = this.origX - ENEMY_X_OFFSET;
-                this.sprite.scale.x *= -1;
-            }
-        }
-    }
-
-    attack(thePlayer) {
-        let endOfPlatform, playerAtRight;
-
-        // Enemy must face the player to attack
-        if (this.sprite.body.x < thePlayer.body.x) {
-            this.sprite.scale.x = 1;
-            playerAtRight = true;
-        } else {
-            this.sprite.scale.x = -1;
-            playerAtRight = false;
-        }
-
-        // Play attack animation and change velocity
-        this.sprite.body.velocity.x = Math.trunc(ENEMY_VELOCITY * 1.4) * this.sprite.scale.x;
-        this.sprite.animations.play('swing');
-
-        // Set the right limits for the enemy's movement (attack and patrolling)
-        if (this.faceright) {
-            if (playerAtRight && thePlayer.body.x > this.stepLimit) {
-                endOfPlatform = this.platform.x + this.platform.width;
-                this.stepLimit = Math.min(Math.min(endOfPlatform, game.world.width), thePlayer.body.x) -
-                    ENEMY_X_OFFSET;
-            }
-            if (!playerAtRight && thePlayer.body.x < this.origX) {
-                this.origX = Math.max(Math.max(0, this.platform.x), thePlayer.body.x) +
-                    ENEMY_X_OFFSET;
-            }
-        } else {
-            if (playerAtRight && thePlayer.body.x > this.origX) {
-                endOfPlatform = this.platform.x + this.platform.width;
-                this.origX = Math.min(Math.min(endOfPlatform, game.world.width), thePlayer.body.x) -
-                    ENEMY_X_OFFSET;
-            }
-            if (!playerAtRight && thePlayer.body.x < this.stepLimit) {
-                this.stepLimit = Math.max(Math.max(0, this.platform.x), thePlayer.body.x) +
-                    ENEMY_X_OFFSET;
-            }
-        }
-
-        // Check that the enemy is not out of bounds. If out of bounds set velocity to 0
-        if (this.faceright && (this.sprite.body.x >= this.stepLimit ||
-                this.sprite.body.x <= this.origX))
-            this.sprite.body.velocity.x = 0;
-        if (!this.faceright && (this.sprite.body.x >= this.origX ||
-                this.sprite.body.x <= this.stepLimit))
-            this.sprite.body.velocity.x = 0;
-    }
-}
-*/
-function loadPlayAssets() {
-    loadSprites();
-    loadImages();
-    //loadSounds();
-    loadLevel(levelToPlay);
+// methods
+/**
+ * Load the assets
+ */
+function loadAssets() {
+    game.load.image('sky', 'assets/images/sky.png');
+    game.load.image('ground', 'assets/images/platform.png');
+    game.load.image('star', 'assets/images/star.png');
+    game.load.image('bomb', 'assets/images/bomb.png');
+    game.load.spritesheet('dude', 'assets/images/dude.png', 32, 36);
+    //game.load.audio('victory', 'assets/snds/victoryCry.wav');
+    //game.load.audio('defeat', 'assets/snds/defeated.wav');
 }
 
-function loadSprites() {
-    game.load.spritesheet('collector', 'assets/images/ardillasheet.png', 32, 48);
-    //game.load.spritesheet('enemy', 'assets/imgs/enemySprite.png', 55, 53, 15);
-}
+/**
+ * Initialise the stage
+ */
+function initialiseGame() {
+    // initial value for numStars
+    numStars = TOTAL_STARS;
 
-/*function loadImages() {
-    game.load.image('bgGame', 'assets/imgs/bgPlay.jpg');
-    game.load.image('exit', 'assets/imgs/exit.png');
-    game.load.image('ground', 'assets/imgs/platform.png');
-    game.load.image('star', 'assets/imgs/star.png');
-    game.load.image('aid', 'assets/imgs/firstaid.png');
-    game.load.image('healthHolder', 'assets/imgs/health_holder.png');
-    game.load.image('healthBar', 'assets/imgs/health_bar.png');
-    game.load.image('heart', 'assets/imgs/heart.png');
-}
+    //  We're going to be using physics, so enable the Arcade Physics system
+    game.physics.startSystem(Phaser.Physics.ARCADE);
 
-function loadSounds() {
-    game.load.audio('damaged', 'assets/snds/hurt1.wav');
-    game.load.audio('collectstar', 'assets/snds/cling.wav');
-    game.load.audio('getaid', 'assets/snds/wooo.wav');
-    game.load.audio('hitenemy', 'assets/snds/snare.wav');
-    game.load.audio('outoftime', 'assets/snds/klaxon4-dry.wav');
-    game.load.audio('levelpassed', 'assets/snds/success.wav');
-}
-*/
-function loadLevel(level) {
-    game.load.text('level', levelsData[level - 1], true);
-}
+    //  A simple background for our game
+    game.add.sprite(0, 0, 'sky');
 
-function createLevel() {
-    exitingLevel = false;
-    // Set World bounds (same size as the image background in this case)
-    game.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-
-    // Background
-    let bg = game.add.tileSprite(0, 0, game.world.width, game.world.height, 'bgGame');
-    // Smooth scrolling of the background in both X and Y axis
-    bg.scrollFactorX = 0.7;
-    bg.scrollFactorY = 0.7;
-
-    // Collide with this image to exit level
-    exit = game.add.sprite(game.world.width - 100, game.world.height - 64, 'exit');
-    game.physics.arcade.enable(exit);
-    exit.anchor.setTo(0, 1);
-    exit.body.setSize(88, 58, 20, 33);
-
-    // Create sounds
-    //createSounds();
-
-    // Create groups with a pool of objects
-    /*createAids();
-    createStars();
-    totalNumOfStars = 0;
-    */
-    // Get level data from JSON
-
-    levelConfig = JSON.parse(game.cache.getText('level'));
-    console.log(levelConfig);
-
+    //  The platforms group contains the ground and the 2 ledges we can jump on
     platforms = game.add.group();
 
+    //  We will enable physics for any object that is created in this group
     platforms.enableBody = true;
 
-    // Create ground and platforms (with enemies, stars and aids) according to JSON data
-    // Be aware that enemies ara not in a group. Each enemy is an instance and is stored in the array enemies
-    createGround();
+    // Here we create the ground.
+    let ground = platforms.create(0, game.world.height - 64, 'ground');
 
-    createPlatforms();
+    //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
+    ground.scale.setTo(2, 2);
 
-    // Now, set time and create the HUD
-    remainingTime = secondsToGo;
-    createHUD();
+    //  This stops it from falling away when you jump on it
+    ground.body.immovable = true;
 
-    // Create player. Initial position according to JSON data
-    player = game.add.sprite(levelConfig.collectorStart.x, game.world.height -
-        levelConfig.collectorStart.y, 'collector');
+    //  Now let's create two ledges
+    let ledge = platforms.create(400, 384, 'ground');
+    ledge.body.immovable = true;
+    ledge = platforms.create(-150, 234, 'ground');
+    ledge.body.immovable = true;
+    ledge = platforms.create(550, 204, 'ground');
+    ledge.body.immovable = true;
 
-        console.log("Player: ", player)
+    // The player and its settings
+    player = game.add.sprite(32, game.world.height - 150, 'dude');
 
-    player.anchor.setTo(0.5, 0.5);
+    //  We need to enable physics on the player
     game.physics.arcade.enable(player);
 
     //  Player physics properties. Give the little guy a slight bounce.
     player.body.bounce.y = 0.2;
-    player.body.gravity.y = BODY_GRAVITY;
+    player.body.gravity.y = 300;
     player.body.collideWorldBounds = true;
-
-    // Camera follows the player inside the world
-    game.camera.follow(player);
 
     //  Our two animations, walking left and right.
     player.animations.add('left', [0, 1, 2, 3], 10, true);
     player.animations.add('right', [5, 6, 7, 8], 10, true);
 
+    //  Finally some stars to collect
+    stars = game.add.group();
+
+    //  We will enable physics for any star that is created in this group
+    stars.enableBody = true;
+
+    // Same with bombs
+    bombs = game.add.group();
+    bombs.enableBody = true;
+
+    //  Here we'll create 12 of them evenly spaced apart
+    for (let i = 0; i < numStars; i++) {
+        //  Create a star inside of the 'stars' group
+        let star = stars.create(i * 70, 0, 'star');
+        //  Let gravity do its thing
+        star.body.gravity.y = 300;
+        //  This just gives each star a slightly random bounce value
+        star.body.bounce.y = 0.7 + Math.random() * 0.2;
+    }
+
+    // The score
+    scoreText = game.add.text(16, 16, 'Score: ' + score, {
+        fontSize: '32px',
+        fill: '#000'
+    });
+
+    // Sounds
+    soundVictory = game.add.audio('victory');
+    soundDefeat = game.add.audio('defeat');
+
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys();
-
-    // Update elapsed time each second
-    timerClock = game.time.events.loop(Phaser.Timer.SECOND, updateTime, this);
 }
 
-/*function createSounds() {
-    soundDamaged = game.add.audio('damaged');
-    soundCollectStar = game.add.audio('collectstar');
-    soundGetAid = game.add.audio('getaid');
-    soundHitEnemy = game.add.audio('hitenemy');
-    soundOutOfTime = game.add.audio('outoftime');
-    soundLevelPassed = game.add.audio('levelpassed');
-}*/
-
-/*function createAids() {
-    firstAids = game.add.group();
-    firstAids.enableBody = true;
-    firstAids.createMultiple(MAX_AIDS, 'aid');
-    firstAids.forEach(setupItem, this);
-}
-
-function createStars() {
-    // similar to the code above
-    stars = game.add.group();
-    stars.enableBody = true;
-    stars.createMultiple(MAX_STARS, 'star');
-    stars.forEach(setupItem, this);
-}*/
-
-/*function setupItem(item) {
-    item.anchor.setTo(0.5, 0.5);
-    item.body.gravity.y = BODY_GRAVITY;
-}*/
-
-function createGround() {
-    ground = platforms.create(0, game.world.height - 64, 'ground');
-    ground.scale.setTo(2.75, 2); // 400x32 ---> 1100x64
-    ground.body.immovable = true;
-
-    /*for (let i = 0, max = levelConfig.ground.enemies.length; i < max; i++)
-        setupEnemy(levelConfig.ground.enemies[i], ground);
-
-    for (let i = 0, max = levelConfig.ground.aids.length; i < max; i++)
-        setupAid(levelConfig.ground.aids[i], ground.y);
-
-    for (let i = 0, max = levelConfig.ground.stars.length; i < max; i++)
-        setupStar(levelConfig.ground.stars[i], ground.y);
-
-        */
-}
-
-function createPlatforms() {
-    levelConfig.platformData.forEach(createPlatform, this);
-}
-
-function createPlatform(platform) {
-    // similar to the code of createGround
- let varplatform;
-    varplatform = platforms.create(platform.x, game.world.height - platform.y, 'ground');
-
-    varplatform.body.immovable = true;
-
-    /*for (let i = 0, max = platform.enemies.length; i < max; i++)
-        setupEnemy(platform.enemies[i], platform);
-
-    for (let i = 0, max =platform.aids.length; i < max; i++)
-        setupAid(platform.aids[i], platform.y);
-
-    for (let i = 0, max = platform.stars.length; i < max; i++)
-        setupStar(platform.stars[i], platform.y);
-
-        */
-}
-
-/*function setupEnemy(enemy, plat) {
-    let isRight, limit;
-
-    let theEnemy = game.add.sprite(enemy.x, plat.y - ENEMY_Y_OFFSET, 'enemy');
-    theEnemy.anchor.setTo(0.5, 0.5);
-    if (enemy.right === 0) {
-        theEnemy.scale.x = -1;
-        isRight = false;
-        limit = Math.max(Math.max(0, plat.x) + ENEMY_X_OFFSET, enemy.x - ENEMY_STEP_LIMIT);
-    } else {
-        isRight = true;
-        limit = Math.min(Math.min(plat.x + plat.width, game.world.width) - ENEMY_X_OFFSET,
-            enemy.x + ENEMY_STEP_LIMIT);
+/**
+ * Game loop: update elements and check events
+ */
+function gameUpdate() {
+    //  If game is already over do nothing
+    if (gameOver) {
+        return;
     }
-*/
-/*
-let flash = game.add.tween(theEnemy).to({
-            alpha: 0.0
-        }, 50, Phaser.Easing.Bounce.Out)
-        .to({
-            alpha: 0.8
-        }, 50, Phaser.Easing.Bounce.Out)
-        .to({
-            alpha: 1.0
-        }, 50, Phaser.Easing.Circular.Out);
+    //  Collide the player, the stars and the bombs with the platforms
+    let hitPlatform = game.physics.arcade.collide(player, platforms);
+    game.physics.arcade.collide(stars, platforms);
+    game.physics.arcade.collide(bombs, platforms);
 
-    game.physics.arcade.enable(theEnemy);
-    /*theEnemy.body.immovable = true;
-    theEnemy.body.collideWorldBounds = true;
-    theEnemy.body.setSize(41, 43, 3, 10);
+    //  Checks to see if the player overlaps with any of the stars, if he does call the
+    //  collectStar function
+    game.physics.arcade.overlap(player, stars, collectStar, null, this);
 
-    theEnemy.animations.add('swing', [0, 1, 2, 3, 4, 5, 6, 7], 10, true);
-    theEnemy.animations.add('run', [8, 9, 10, 11, 12, 13, 14], 10, true);
-
-    let newEnemy = new Enemy(theEnemy, flash, plat, isRight, limit, jumpsToKill);
-    enemies.push(newEnemy);
-}
-*/
-/*
-function setupAid(aid, floorY) {
-    let item = firstAids.getFirstExists(false);
-    if (item)
-        item.reset(aid.x, floorY - AID_STAR_Y_OFFSET);
-}
-
-function setupStar(star, floorY) {
-    let item = stars.getFirstExists(false);
-    if (item) {
-        item.reset(star.x, floorY - AID_STAR_Y_OFFSET);
-        totalNumOfStars += 1;
-    }
-}
-*/
-function createHUD() {
-    hudGroup = game.add.group();
-    //hudGroup.create(5, 5, 'heart');
-    //hudGroup.create(50, 5, 'healthHolder');
-    //healthBar = hudGroup.create(50, 5, 'healthBar');
-    hudTime = game.add.text(295, 5, setRemainingTime(remainingTime), {
-        font: 'bold 14pt Sniglet',
-        fill: '#b60404'
-    });
-    hudGroup.add(hudTime);
-    hudGroup.fixedToCamera = true;
-    //healthValue = MAX_HEALTH;
-}
-
-function updateLevel() {
-    let dist;
-    //  The player collide with the platforms. Got it!
-    let hitPlatform = game.physics.arcade.collide(player, platforms, playerInPlatform, null, this);
-
-    // Stars and first-aid boxes collide with platforms
-    //game.physics.arcade.collide(stars, platforms);
-    //game.physics.arcade.collide(firstAids, platforms);
-
-    // Check if player overlaps with any of the stars or first aids
-    //game.physics.arcade.overlap(player, stars, collectStar, null, this);
-    //game.physics.arcade.overlap(player, firstAids, getFirstAid, null, this);
-
-    // Test collisions with enemies
-    /*for (let i = enemies.length - 1; i >= 0; i--) {
-        if (enemies[i].platform === playerPlatform) {
-            dist = Phaser.Math.distance(enemies[i].sprite.body.x, enemies[i].sprite.body.y,
-                player.body.x, player.body.y);
-            if (Math.round(dist) <= ENEMY_DISTANCE_ATTACK)
-                enemies[i].setIsPatrolling(false);
-            else
-                enemies[i].setIsPatrolling(true);
-        } else
-            enemies[i].setIsPatrolling(true);
-
-        if (enemies[i].getIsPatrolling())
-            enemies[i].patrol();
-        else
-            enemies[i].attack(player);
-
-        if (game.physics.arcade.collide(player, enemies[i].sprite))
-            playerVsEnemy(player, enemies[i].sprite, enemies[i], i);
-    }
+    // Same with bombs
+    game.physics.arcade.overlap(player, bombs, hitBomb, null, this);
 
     //  Reset the players velocity (movement)
     player.body.velocity.x = 0;
-*/
+
     if (cursors.left.isDown) {
         //  Move to the left
-        player.body.velocity.x = -PLAYER_VELOCITY;
+        player.body.velocity.x = -150;
         player.animations.play('left');
-        toRight = false;
     } else if (cursors.right.isDown) {
         //  Move to the right
-        player.body.velocity.x = PLAYER_VELOCITY;
+        player.body.velocity.x = 150;
         player.animations.play('right');
-        toRight = true;
     } else {
         //  Stand still
-        stopPlayer();
+        player.animations.stop();
+        player.frame = 4;
     }
 
-    // Allow the player to jump if touching the ground.
+    // Allow the player to jump if they are touching the ground.
     if (cursors.up.isDown && player.body.touching.down && hitPlatform) {
-        player.body.velocity.y = -PLAYER_VELOCITY * 2;
-        playerPlatform = undefined;
+        player.body.velocity.y = -325;
     }
-
-    // Check if player exits level and the game is over
-    if (!exitingLevel)
-        game.physics.arcade.overlap(player, exit, endLevel, null, this);
 }
 
-function playerInPlatform(player, platform) {
-    if (player.body.touching.down)
-        playerPlatform = platform;
-}
-
-/*function collectStar(player, star) {
-    soundCollectStar.play();
+function collectStar(player, star) {
+    // Removes the star from the screen
     star.kill();
-    totalNumOfStars -= 1;
-}
+    numStars--;
+    // Add and update the score
+    score += 10;
+    scoreText.text = 'Score: ' + score;
 
-function getFirstAid(player, aid) {
-    soundGetAid.play();
-    aid.kill();
-    healthValue = Math.min(MAX_HEALTH, healthValue + healthAid);
-    updateHealthBar();
-}
-*/
-
-/*function playerVsEnemy(player, enemySprite, enemyObject, position) {
-    if (enemySprite.body.touching.up) {
-        soundHitEnemy.play();
-        if (!enemyObject.flash.isRunning)
-            enemyObject.flash.start();
-        if (toRight)
-            player.body.x += PLAYER_COLLIDE_OFFSET_X;
-        else
-            player.body.x -= PLAYER_COLLIDE_OFFSET_X;
-        let hits = enemyObject.getHitsToBeKilled();
-        enemyObject.setHitsToBeKilled(hits - 1);
-        if (enemyObject.getHitsToBeKilled() <= 0) {
-            enemySprite.destroy();
-            enemies.splice(position, 1);
-        }
-    } else {
-        soundDamaged.play();
-        healthValue = Math.max(0, healthValue - damage);
-        updateHealthBar();
-        if (toRight)
-            player.body.x -= PLAYER_COLLIDE_OFFSET_X;
-        else
-            player.body.x += PLAYER_COLLIDE_OFFSET_X;
-        if (healthValue === 0)
-            resetPlayer();
+    // If there are no more stars, reset them and drop a bomb
+    if (numStars === 0) {
+        stars.forEachDead(function (s) {
+            s.revive();
+            s.y = 0;
+        });
+        numStars = TOTAL_STARS;
+        let x = (player.x < 400) ? Phaser.Math.between(400, 800) : Phaser.Math.between(0, 400);
+        let bomb = bombs.create(x, 16, 'bomb');
+        bomb.body.bounce.x = bomb.body.bounce.y = 1;
+        bomb.body.collideWorldBounds = true;
+        bomb.body.velocity.x = Phaser.Math.between(-200, 200);
+        bomb.body.velocity.y = 200;
+        bomb.body.allowGravity = false;
     }
-    player.body.y -= PLAYER_COLLIDE_OFFSET_Y;
-}
-*/
-/*
-function updateHealthBar() {
-    if (healthTween)
-        healthTween.stop();
 
-        console.log(healthTween);
-    // write the required instructions to set the tween and start it
-    healthTween = game.add.tween(healthBar.scale).to({x: healthValue / MAX_HEALTH}, 300,
-        Phaser.Easing.Linear.None);
-    healthTween.start();
-    //healthBar.scale.x *= healthValue / MAX_HEALTH;
-}
-
-function resetPlayer() {
-    stopPlayer();
-    player.x = levelConfig.collectorStart.x;
-    player.y = game.world.height - levelConfig.collectorStart.y;
-    remainingTime = Math.max(0, remainingTime - playerDeathTimePenalty);
-    healthValue = MAX_HEALTH;
-    updateHealthBar();
-}
-*/
-function setRemainingTime(seconds) {
-    return String(Math.trunc(seconds / 60)).padStart(2, "0") + ":" +
-        String(seconds % 60).padStart(2, "0");
-}
-
-function updateTime() {
-    remainingTime = Math.max(0, remainingTime - 1);
-    hudTime.setText(setRemainingTime(remainingTime));
-    if (remainingTime === 0) {
-        resetInput();
-        soundOutOfTime.play();
-        stopPlayer();
-        game.time.events.remove(timerClock);
-        game.time.events.add(2500, endGame, this);
+    // check if the player wins
+    if (score > VICTORY_POINTS) {
+        victoryAtEnd = true;
+        endGame();
     }
 }
 
-function stopPlayer() {
-    player.animations.stop();
-    player.frame = 4;
+function hitBomb(player, bomb) {
+    player.tint = 0xff0000;
+    victoryAtEnd = false;
+    endGame();
 }
 
-function resetInput() {
+function endGame() {
+    // Game Over
+    gameOver = true;
+
+    // Stop and reset input
     game.input.enabled = false;
     cursors.left.reset(true);
     cursors.right.reset(true);
     cursors.up.reset(true);
     cursors.down.reset(true);
-}
 
-/*function endLevel() {
-    if (totalNumOfStars === 0) {
-        exitingLevel = true;
-        resetInput();
-        soundLevelPassed.play();
-        stopPlayer();
-        game.time.events.remove(timerClock);
-        game.time.events.add(4000, nextLevel, this);
+    // Stop player
+    player.animations.stop();
+    player.frame = 4;
+    player.body.velocity.x = player.body.velocity.y = 0;
+    player.body.bounce.y = 0;
+    player.body.gravity.y = 0;
+
+    // Cleaning...
+    stars.removeAll(true);
+    bombs.removeAll(true);
+
+    // Final animation (a tween)
+    let finalTween = game.add.tween(player.scale).to({
+            x: 2,
+            y: 2
+        }, 1000,
+        Phaser.Easing.Cubic.Out, true, 0, 2, true);
+
+    finalTween.onComplete.add(function () {
+        player.destroy();
+        platforms.removeAll(true);
+        game.state.start('final');
+    });
+
+    if (victoryAtEnd) {
+        soundVictory.play();
+    } else {
+        soundDefeat.play();
     }
-}*/
-
-function endGame() {
-    clearLevel();
-    goToWelcome();
 }
-
-function nextLevel() {
-    clearLevel();
-    levelToPlay += 1;
-    if (levelToPlay > levelsData.length)
-        goToWelcome();
-    else {
-        game.input.enabled = true;
-        game.state.start('play');
-    }
-}
-
-function clearLevel() {
-    for (let i = 0, max = enemies.length; i < max; i++) {
-        enemies[i].sprite.destroy();
-    }
-    enemies = [];
-    hudGroup.removeAll(true);
-    platforms.removeAll(true);
-    player.destroy();
-    //firstAids.removeAll(true);
-    //stars.removeAll(true);
-}
-
-function goToWelcome() {
-    game.world.setBounds(0, 0, game.width, game.height);
-    game.state.start('welcome');
-}
-/*function debugGame() {
-    game.debug.camera(game.camera);
-    game.debug.cameraInfo(game.camera);
-    game.debug.body(player);
-    game.debug.body(exit);
-    for (let i = 0, max = enemies.length;
-        i < max; i++) {
-        game.debug.body(enemies[i].sprite);
-    }
-    game.debug.physicsGroup(platforms,
-           'rgba(255,0,0,0.5)', false);
-    }*/
