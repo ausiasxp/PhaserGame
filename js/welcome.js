@@ -18,7 +18,8 @@ function displayScreen(){
     bg.width = game.world.width;
     bg.height = game.world.height;
 
-    game.add.image(250, 170, 'title');
+    let title = game.add.image(game.world.width/2, 170, 'title');
+    title.anchor.setTo(0.5, 0.5);
 
     showAuthors();
     showButtons();
@@ -36,10 +37,12 @@ function showAuthors(){
 }
 
 function showButtons(){
-    btnPlay = game.add.button(game.world.width / 2 - 50, game.world.height / 3 *2,
+    btnPlay = game.add.button(game.world.width / 2 , game.world.height / 3 *2,
         'playButton', onPlayButtonPressed);
-    btnAbout = game.add.button(btnPlay.x - 10, btnPlay.y + btnPlay.height + 30,
+    btnPlay.anchor.setTo(0.5, 0.5);
+    btnAbout = game.add.button(btnPlay.x, btnPlay.y + btnPlay.height + 30,
         'aboutButton', onAboutButtonPressed);
+    btnAbout.anchor.setTo(0.5, 0.5);
 
 }
 

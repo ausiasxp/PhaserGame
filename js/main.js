@@ -23,7 +23,7 @@ function startGame() {
     // Welcome Screen
     game.state.add('welcome', initialState);
     // About Screen
-    //game.state.add('about', aboutState);
+    game.state.add('about', aboutState);
     // Play Screen
     //game.state.add('play', playState);
     // End game screen
