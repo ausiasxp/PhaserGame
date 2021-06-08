@@ -352,39 +352,55 @@ function setPlatformsBehind(){
     // Here we create the ledges.
     ledge = platforms.create(LEVEL_X_ORIGIN, WORLD_HEIGHT - 400, 'platform5');
     ledge.body.immovable = true;
+    ledge.body.checkCollision.down = false;
     ledge = platforms.create(LEVEL_X_ORIGIN + 360, WORLD_HEIGHT - 330, 'platform1');
     ledge.body.immovable = true;
+    ledge.body.checkCollision.down = false;
     ledge = platforms.create(LEVEL_X_ORIGIN + 750, WORLD_HEIGHT - 210, 'platform4');
     ledge.body.immovable = true;
+    ledge.body.checkCollision.down = false;
     ledge = platforms.create(LEVEL_X_ORIGIN + 850, WORLD_HEIGHT - 330, 'platform5');
     ledge.body.immovable = true;
+    ledge.body.checkCollision.down = false;
 
     ledge = platforms.create(LEVEL_X_ORIGIN + 1300, WORLD_HEIGHT - 450, 'platform3');
     ledge.body.immovable = true;
+    ledge.body.checkCollision.down = false;
     ledge = platforms.create(LEVEL_X_ORIGIN + 1630, WORLD_HEIGHT - 290, 'platform2');
     ledge.body.immovable = true;
+    ledge.body.checkCollision.down = false;
     ledge = platforms.create(LEVEL_X_ORIGIN + 2220, WORLD_HEIGHT - 310, 'platform4');
     ledge.body.immovable = true;
+    ledge.body.checkCollision.down = false;
     ledge = platforms.create(LEVEL_X_ORIGIN + 2020, WORLD_HEIGHT - 390, 'platform1');
     ledge.body.immovable = true;
+    ledge.body.checkCollision.down = false;
 
     ledge = platforms.create(LEVEL_X_ORIGIN + 2530, WORLD_HEIGHT - 290, 'platform5');
     ledge.body.immovable = true;
+    ledge.body.checkCollision.down = false;
     ledge = platforms.create(LEVEL_X_ORIGIN + 3090, WORLD_HEIGHT - 160, 'platform4');
     ledge.body.immovable = true;
+    ledge.body.checkCollision.down = false;
     ledge = platforms.create(LEVEL_X_ORIGIN + 3100, WORLD_HEIGHT - 410, 'platform1');
     ledge.body.immovable = true;
+    ledge.body.checkCollision.down = false;
     ledge = platforms.create(LEVEL_X_ORIGIN + 3360, WORLD_HEIGHT - 320, 'platform3');
     ledge.body.immovable = true;
+    ledge.body.checkCollision.down = false;
 
     ledge = platforms.create(LEVEL_X_ORIGIN + 3900, WORLD_HEIGHT - 200, 'platform1');
     ledge.body.immovable = true;
+    ledge.body.checkCollision.down = false;
     ledge = platforms.create(LEVEL_X_ORIGIN + 4050, WORLD_HEIGHT - 300, 'platform4');
     ledge.body.immovable = true;
+    ledge.body.checkCollision.down = false;
     ledge = platforms.create(LEVEL_X_ORIGIN + 4200, WORLD_HEIGHT - 400, 'platform1');
     ledge.body.immovable = true;
+    ledge.body.checkCollision.down = false;
     ledge = platforms.create(LEVEL_X_ORIGIN + 4500, WORLD_HEIGHT - 400, 'platform3');
     ledge.body.immovable = true;
+    ledge.body.checkCollision.down = false;
 }
 
 function setPlatformsInfront(){
@@ -406,6 +422,7 @@ function setPlatformsInfront(){
     //branch1
     let ledge = platforms.create(300, WORLD_HEIGHT - 180, 'groundr');
     ledge.body.immovable = true;
+    ledge.body.checkCollision.down = false;
 
     //branch to the left of the branch1
     ledge = platforms.create(140, WORLD_HEIGHT - 300, 'groundl');
