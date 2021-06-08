@@ -14,15 +14,16 @@ function loadAboutAssets(){
 
 function showInstructions(){
     bg = game.add.image(0, 0, 'bg');
-    bg.width = game.world.width;
-    bg.height = game.world.height;
+    bg.width = STAGE_WIDTH;
+    bg.height = STAGE_HEIGHT;
 
-    let rect = game.add.image(game.world.width/2, 15, 'textBg');
+    let rect = game.add.image(STAGE_WIDTH/2, 15, 'textBg');
     rect.anchor.setTo(0.5, 0);
     rect.alpha = 0.8;
-    rect.width = game.world.width - 30;
-    rect.height = game.world.height - 130;
+    rect.width = STAGE_WIDTH - 30;
+    rect.height = STAGE_HEIGHT - 130;
 
+    // Add the title
     let textTitle = game_name;
     let styleTitle = {
         font: font_title,
@@ -30,9 +31,10 @@ function showInstructions(){
         fill: '#000000'
     };
 
-    let title = game.add.text(game.world.width/2, 50, textTitle, styleTitle);
+    let title = game.add.text(STAGE_WIDTH/2, 50, textTitle, styleTitle);
     title.anchor.setTo(0.5, 0.5);
 
+    // Add the instructions
     let instructions = 'insert instrucionsinsert instrucionsinsert instrucionsinsert instrucionsinsert instrucions';
     instructions += 'insert instrucionsinsert instrucionsinsert instrucionsinsert instrucionsinsert instrucions';
     instructions += 'insert instrucionsinsert instrucionsinsert instrucionsinsert instrucionsinsert instrucions';
@@ -45,13 +47,13 @@ function showInstructions(){
     });
 
     //instrucText.anchor.setTo(0.5, 0.5);
-    instrucText.setTextBounds(30, 150, game.world.width - 50);
+    instrucText.setTextBounds(30, 150, STAGE_WIDTH - 50);
     instrucText.boundsAlignH = 'center';
     instrucText.boundsAlignV = 'middle';
     instrucText.wordWrap = true;
-    instrucText.wordWrapWidth = game.world.width - 60;
+    instrucText.wordWrapWidth = STAGE_WIDTH - 60;
 
-    let btnBack = game.add.button(game.world.width / 2, game.world.height - 60, 'backButton',
+    let btnBack = game.add.button(STAGE_WIDTH / 2, STAGE_HEIGHT - 60, 'backButton',
     onBackButtonPressed);
     btnBack.anchor.setTo(0.5, 0.5);
 }

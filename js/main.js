@@ -1,3 +1,4 @@
+
 let game;
 
 let wfConfig = {
@@ -18,7 +19,7 @@ let wfConfig = {
 WebFont.load(wfConfig);
 
 function startGame() {
-    game = new Phaser.Game(800, 600, Phaser.CANVAS, 'GameStage');
+    game = new Phaser.Game(STAGE_WIDTH, STAGE_HEIGHT, Phaser.CANVAS, 'GameStage');
 
     // Welcome Screen
     game.state.add('welcome', initialState);
@@ -27,8 +28,8 @@ function startGame() {
     // Play Screen
     game.state.add('play', playState);
     // End game screen
-    //game.state.add('end', endState);
+    game.state.add('end', endState);
 
-    game.state.start('play');
+    game.state.start('welcome');
 
 }

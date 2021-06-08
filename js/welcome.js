@@ -1,4 +1,5 @@
-let btnAbout, btnPlay;
+const STAGE_WIDTH = 800;
+const STAGE_HEIGHT = 600;
 
 let initialState = {
     preload: loadAssets,
@@ -15,10 +16,10 @@ function loadAssets(){
 function displayScreen(){
     game.input.enabled = true;
     let bg = game.add.image(0, 0, 'bg');
-    bg.width = game.world.width;
-    bg.height = game.world.height;
+    bg.width = STAGE_WIDTH;
+    bg.height = STAGE_HEIGHT;
 
-    let title = game.add.image(game.world.width/2, 170, 'title');
+    let title = game.add.image(STAGE_WIDTH/2, 170, 'title');
     title.anchor.setTo(0.5, 0.5);
 
     showAuthors();
@@ -33,17 +34,16 @@ function showAuthors(){
         //boundsAlignH: "right"
     };
 
-    game.add.text(game.world.width - 200, game.world.height -100, msgAuthors, styleAuthors);
+    game.add.text(STAGE_WIDTH - 200, STAGE_HEIGHT -100, msgAuthors, styleAuthors);
 }
 
 function showButtons(){
-    btnPlay = game.add.button(game.world.width / 2 , game.world.height / 3 *2,
+    let btnPlay = game.add.button(STAGE_WIDTH / 2 , STAGE_HEIGHT / 3 *2,
         'playButton', onPlayButtonPressed);
     btnPlay.anchor.setTo(0.5, 0.5);
-    btnAbout = game.add.button(btnPlay.x, btnPlay.y + btnPlay.height + 30,
+    let btnAbout = game.add.button(btnPlay.x, btnPlay.y + btnPlay.height + 30,
         'aboutButton', onAboutButtonPressed);
     btnAbout.anchor.setTo(0.5, 0.5);
-
 }
 
 function onAboutButtonPressed() {

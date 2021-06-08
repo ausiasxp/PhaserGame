@@ -1,435 +1,785 @@
+// PENDIENTE
+// Change sign to a more polite one (or not idk)
+// plataformas movible
+// ZONA C!!
+// Nivel optativo
+// Terminar pantalla final
+
+// GLOBAL
+const WORLD_WIDTH = 10000;
+const WORLD_HEIGHT = 900;//before:800
+const GRAVITY = 1000;
+const JUMP = 600;
+const SQUIRREL_VELOCITY = 300;
+const font_sign = 'Sniglet';
+const font_time = 'sniglet';
+
+//game states
+const PLATFORMER = 0;
+const AVOID_ENEMIES = 1;
+const WORD_GAME = 2;
+
+// PLATFORM
 const VICTORY_POINTS = 500;
-const TOTAL_STARS = 12;
+const PLATFORM_X_OFFSET = 20;
+const PLATFORM_VELOCITY = 75;
+const BUSH_HEIGHT = 990;
+const MAX_JUMPS = 35;
 
-let playState = {
-    preload: loadAssets,
-    create: initialiseGame,
-    update: gameUpdate
-};
 
-let platforms;
-let bgplatform;
-let player;
-let cursors;
-let stars;
-let bombs;
+// AVOID ENEMIES
+const LEVEL_X_ORIGIN = 4355;
+
+const TIMER_RYTHM = 2*Phaser.Timer.SECOND;
+const MAX_ENERGY = 6;
+
+const EAGLES_GROUP_SIZE = 10;
+const EAGLE_PROBABILITY = 0.5;
+const EAGLE_VELOCITY = 70;
+
+const FOXES_GROUP_SIZE = 10;
+const FOXES_PROBABILITY = 0.5;
+const FOXES_VELOCITY = 300;
+const FOXES_VELOCITY_Y = 800;
+
+const PLAYER_COLLIDE_OFFSET_X = 200;
+
+
+// GLOBAL 
+let gameState = 0;  // Start at platformer
+let squirrel;
+let bg;
+let platforms, ground;
+let toRight = false;
+let cursors, spacebarKey;
+let soundMusic;
+let music = false;
+let squirrel_initial_x = 32; 
+let squirrel_initial_y = WORLD_HEIGHT - 150;
+let total_time = 0, total_timeHUD, total_time_clock;
+
+// PLATFORM
+let bgplatformBehind, bgplatformInfront;
 let score = 0;
 let scoreText;
-let numStars;
-let gameOver = false;
-let victoryAtEnd;
-let soundVictory;
-let soundDefeat;
-const WORLD_WIDTH = 2500
-const WORLD_HEIGHT = 800
+let soundJump;
+let currentJump = MAX_JUMPS;
+let WallAB;
+let jumpsHUD;
+let sign, signGroup, rect, signText, signTextContainer;
+
+// AVOID ENEMIES
+let EnergyValue = MAX_ENERGY;
+let eagles;
+let currentEagleProbability, currentEagleVelocity;
+let foxes, foxCall;
+let energyHUD;
+let gameOverImg, replayButton;
 
 
-//game.state.add('play', playState);
-//game.state.add('final', finalState);
+///////////////////// VarsP
+let wordFound = false; //variable que dice si hemos encontrado las palabras o no
+let wordsFound = 0;
+let wordFoundText;
 
-//game.state.start('play');
+let word = ""; //variable que acumula la palabra que pone el jugador
+let wordText;
 
-// methods
-/**
- * Load the assets
- */
-function loadAssets() {
-    game.load.image('sky', 'assets/images/sky.png');
-    game.load.image('ground', 'assets/images/ground.png');
+let palabraActual;
+let palabraActualText;
+
+let charText;
+
+var timerPalabras;
+var timerTextPalabras;
+var timeRemaining = 10;
+var scorePalabras = 0;
+var scorePalabrasText;
+
+var imagenPalabra;
+
+var entraJuegoPalabras = true; //esta variable mira si es la primera vez que entramos al juego palabras
+
+/////////////////////////
+
+let playState = {
+    preload: loadPlayAssets,
+    create: createPlay,
+    update: updatePlay,
+    //render: render
+};
+
+function loadPlayAssets(){
+    // PLATFORMER
     game.load.image('groundr', 'assets/images/platform.png');
     game.load.image('groundl', 'assets/images/platformleft.png');
+    game.load.image('sign', 'assets/images/signpost.png');
     game.load.image('star', 'assets/images/star.png');
     game.load.image('tree', 'assets/images/tree3.png');
     game.load.image('tree2', 'assets/images/tree2.png');
     game.load.image('bush', 'assets/images/bush.png');
-    //game.load.image('bomb', 'assets/images/bomb.png');
-    game.load.spritesheet('dude', 'assets/images/dude.png', 32, 36);
-    //game.load.audio('victory', 'assets/snds/victoryCry.wav');
-    //game.load.audio('defeat', 'assets/snds/defeated.wav');
+    game.load.image('signTextBg', 'assets/images/rectangle_about.png');
+    game.load.audio('jump', 'assets/sounds/jump_04.wav');
+    game.load.audio('music', 'assets/sounds/music.wav');
+
+    game.load.spritesheet('jumpsHUD', 'assets/images/jumpsUI.png', 96, 64);
+
+    loadPlayAssetsAvoidEnemies();
+
+    ///////////// WORDS
+    //["phaser", "amogus", "amengual", "manzana", "ornitorrinco", "juegos", "palabra", "lorem ipsum"]
+    game.load.image('phaser', 'assets/images/phaserImg.png');
+    game.load.image('amogus', 'assets/images/amogusImg.png');
+    game.load.image('amengual', 'assets/images/amengualImg.png');
+    game.load.image('manzana', 'assets/images/manzanaImg.png');
+    game.load.image('ornitorrinco', 'assets/images/ornitorrincoImg.png');
+    game.load.image('juegos', 'assets/images/juegosImg.png');
+    game.load.image('palabra', 'assets/images/palabraImg.png');
+    game.load.image('lorem ipsum', 'assets/images/loremImg.jpg');
+    /////////////
 }
 
-/**
- * Initialise the stage
- */
-function initialiseGame() {
+function createPlay(){
 
-    // initial value for numStars
-    numStars = TOTAL_STARS;
-    console.log("created");
-
-    // Set World bounds (same size as the image background in this case)
     game.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-    console.log(game.world.width);
+
     // Background
-    let bg = game.add.sprite(0, 0, 'sky');
-    bg.scrollFactorX = 0.7;
-    bg.scrollFactorY = 0.7;
+    bg = game.add.tileSprite(0, 0, game.world.width, game.world.height, 'bgGame');
 
-    //  We're going to be using physics, so enable the Arcade Physics system
-    game.physics.startSystem(Phaser.Physics.ARCADE);
+    //  Our controls.
+    cursors = game.input.keyboard.createCursorKeys(); 
+    spacebarKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
-    //  A simple background for our game
-    //let sky = game.add.sprite(0, 0, 'sky');
-    bg.width = game.world.width;
-    bg.height = game.world.height;
+    setPlatformsBehind();
 
-    //  The platforms group contains the ground and the 2 ledges we can jump on
+    // Create ground
+    ground = game.add.tileSprite(0, game.world.height - 64, game.world.width, 100, 'ground');
+    game.physics.arcade.enable(ground);
+    ground.body.immovable = true;
+
+    // Sign
+    createSign();
+
+   // Squirrel
+    setSquirrel(); 
+    // Camera follows the player inside the world
+    game.camera.follow(squirrel);
+
+    createPlayAvoidEnemies();
+
+    setPlatformsInfront();
+
+    // Sounds
+    soundMusic = game.add.audio('music');
+    soundJump = game.add.audio('jump');
+    foxCall = game.add.audio('foxCall');
+    
+    // Remaining jumps HUD
+    let allX = 50;
+    jumpsHUD = game.add.sprite(allX, 50, 'jumpsHUD', currentJump);
+    jumpsHUD.anchor.setTo(0.5, 0.5);
+    jumpsHUD.fixedToCamera = true;
+
+    // Definitive HUD
+    energyHUD = game.add.sprite(allX, jumpsHUD.y + jumpsHUD.height + 10, 'HUDenergy', 6);
+    energyHUD.anchor.setTo(0.5, 0.5);
+    energyHUD.fixedToCamera = true;
+
+    // Create the clock for the total time
+    total_time_clock = game.time.events.loop(Phaser.Timer.SECOND, updateTime, this);
+    total_timeHUD = game.add.text(allX, energyHUD.y + energyHUD.height + 10, total_time, {
+        fontSize: '20pt',
+        font: font_time
+    });
+    total_timeHUD.anchor.setTo(0.5, 0.5);
+    total_timeHUD.fixedToCamera = true;
+    total_timeHUD.stroke = '#000000';
+    total_timeHUD.strokeThickness = 8;
+    total_timeHUD.fill = '#ffffff';
+
+    ////////////////////////// WORDS
+
+    wordText = game.add.text(30, 30, "", {fill:'#000000'});
+    wordFoundText = game.add.text(30, 60, "", {fill:'#000000'});
+    palabraActualText = game.add.text(30, 90, "", {fill:'#000000'});
+    charText = game.add.text(30, 150, "", {fill:'#000000'})
+    charText.fixedToCamera = true;
+
+    timerTextPalabras = game.add.text(200, 30, "", {fill:'#000000'});
+
+    scorePalabrasText = game.add.text(300,70, "", {fill:'#000000'});
+
+    //  Create our Timer
+    timerPalabras = game.time.create(false);
+
+    //  Set a TimerEvent to occur after 2 seconds
+    timerPalabras.loop(1000, updateCounter, this);
+
+    //  Start the timerPalabras running - this is important!
+    //  It won't start automatically, allowing you to hook it to button events and the like.
+    timerPalabras.start();
+
+
+    //Minijuego palabras
+    game.input.keyboard.addCallbacks(this, keyPress, null, null); //pillamos input de teclado para llamar a keyPress
+
+    // Initialize first 
+    imagenPalabra = game.add.sprite(0, STAGE_HEIGHT*2, "amogus");
+    mostrarImagenPalabra("amogus");
+
+    //Inicializamos la lista de palabras y la palabra actual
+    misPalabras = ["phaser", "amogus", "amengual", "manzana", "ornitorrinco", "juegos", "palabra", "lorem ipsum"];
+    palabraActual = nuevaPalabra(misPalabras);
+    //////////////////////////
+}
+
+function updateTime(){
+    total_time += 1;
+    let minutes = String(Math.trunc(total_time / 60)).padStart(2, "0");
+    let seconds = String(total_time % 60).padStart(2, "0");
+    total_timeHUD.setText(minutes + ':' + seconds);
+}
+
+function createSign(){
+    // Sign
+    sign = game.add.sprite(wallAB.x - 150, ground.y, 'sign');
+    sign.anchor.setTo(0, 1);
+
+    // Text background
+    rect = game.add.image(sign.x, sign.y - 400, 'signTextBg');
+    rect.anchor.setTo(0.5, 0);
+    rect.alpha = 0.8;
+    rect.width = STAGE_WIDTH *0.8;
+    rect.height = STAGE_HEIGHT *0.5;
+
+    // Text 
+    signText = 'Well, well, well... What do we have here? ';
+    signText += 'A smartass that thought it was going to be that easy. ';
+    signText += '\nSorry to disappoint you, but you have to jump over the platforms. ';
+
+    signTextContainer = game.add.text(rect.x - rect.width/2 + 30, rect.y, signText, {
+        font: font_sign,
+        fontSize: '15pt',
+        fill: '#000000'
+    });
+
+    signTextContainer.setTextBounds(0, 0, rect.width - 50, rect.height);
+    signTextContainer.boundsAlignH = 'center';
+    signTextContainer.boundsAlignV = 'middle';
+    signTextContainer.wordWrap = true;
+    signTextContainer.wordWrapWidth = rect.width - 50; 
+
+    rect.visible = false;
+    signText.visible = false;
+    signTextContainer.visible = false;
+/*
+    signGroup = game.add.group();
+    signGroup.add(rect);
+    signGroup.add(signText);
+    signGroup.add(signTextContainer);
+    signGroup.visible = false; */
+}
+
+function setSquirrel(){
+    squirrel = game.add.sprite(squirrel_initial_x, squirrel_initial_y, 'squirrelSpritesheet');
+    
+    //  We need to enable physics on the player
+    game.physics.arcade.enable(squirrel);
+
+    //  Player physics properties. Give the little guy a slight bounce.
+    squirrel.body.bounce.y = 0.2;
+    squirrel.body.gravity.y = GRAVITY;
+    squirrel.body.collideWorldBounds = true;
+    squirrel.anchor.setTo(0.5, 0.5);
+
+    // Set animations
+    squirrel.animations.add('walk_right', [0, 1, 2], 10, true);
+    squirrel.animations.add('walk_left', [3, 4, 5], 10, true);
+
+    // Adjust bounding box
+    squirrel.body.setSize(64, 38);
+}
+
+function setPlatformsBehind(){
+    //  The platforms group contains the ledges we can jump on
     platforms = game.add.group();
-
     //  We will enable physics for any object that is created in this group
     platforms.enableBody = true;
-    
-    // Here we create the ground.
 
-    //ground1
-    let ground = platforms.create(0, game.world.height - 64, 'ground');
+    // Background behind the squirrel
+    bgplatformBehind = game.add.group();
 
-    //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
-    ground.scale.setTo(1, 1);
+    // Wall between this and the next level so that the player can't just walk on the ground
+    // throught the first zone
+    wallAB = game.add.sprite(LEVEL_X_ORIGIN - 100, WORLD_HEIGHT, 'tree');
+    wallAB.anchor.setTo(0.5, 1);
+    game.physics.arcade.enable(wallAB);
+    wallAB.body.immovable = true;
 
-    //  This stops it from falling away when you jump on it
-    ground.body.immovable = true;
+    // PLATFORMER
+    //treebg2
+    bgtree = bgplatformBehind.create(560, game.world.height - 680, 'tree');
+    bgtree.scale.setTo(1, 1);
+    bush = bgplatformBehind.create(425, WORLD_HEIGHT - 760, 'bush');
+    bush.scale.setTo(0.75, 0.75);
 
-    for (let i = 0; i < 2250; i= i+450) {
-    //ground2
-    ground = platforms.create(600 +i, game.world.height - 64, 'ground');
-    ground.scale.setTo(0.75, 0.75);
-    ground.body.immovable = true;
+    //treebg4
+    bgtree = bgplatformBehind.create(1575, game.world.height - 935, 'tree');
+    bgtree.scale.setTo(0.77, 1.4);
+    bush = bgplatformBehind.create(1405, WORLD_HEIGHT - BUSH_HEIGHT, 'bush');
+    bush.scale.setTo(0.75, 0.75);
 
-    }
+    //treebg6
+    bgtree = bgplatformBehind.create(2310, game.world.height - 935, 'tree');
+    bgtree.scale.setTo(0.77, 1.4);
 
-    //ground5
-    ground = platforms.create(2275, game.world.height - 300, 'ground');
-    ground.scale.setTo(0.5, 0.5);
-    ground.body.immovable = true;
+    bush = bgplatformBehind.create(2140, WORLD_HEIGHT - BUSH_HEIGHT, 'bush');
+    bush.scale.setTo(0.75, 0.75);
 
-    //  The platforms group contains the ground and the 2 ledges we can jump on
-    bgplatform = game.add.group();
+    //treebg8
+    bgtree = bgplatformBehind.create(3110, game.world.height - 935, 'tree');
+    bgtree.scale.setTo(0.77, 1.4);
+    bush = bgplatformBehind.create(2940, WORLD_HEIGHT - BUSH_HEIGHT, 'bush');
+    bush.scale.setTo(0.75, 0.75);
 
-    //  We will enable physics for any object that is created in this group
-    bgplatform.enableBody = true;
+    //treebg10
+    bgtree = bgplatformBehind.create(3850, game.world.height - 935, 'tree');
+    bgtree.scale.setTo(0.77, 1.4);
+    bush = bgplatformBehind.create(3680, WORLD_HEIGHT - BUSH_HEIGHT, 'bush');
+    bush.scale.setTo(0.75, 0.75);
 
-     // Here we create the ground.
-     let bgground = bgplatform.create(195, game.world.height - 515, 'tree');
+    // AVOID ENEMIES
+    // Here we create the ledges.
+    ledge = platforms.create(LEVEL_X_ORIGIN, WORLD_HEIGHT - 400, 'platform5');
+    ledge.body.immovable = true;
+    ledge = platforms.create(LEVEL_X_ORIGIN + 360, WORLD_HEIGHT - 330, 'platform1');
+    ledge.body.immovable = true;
+    ledge = platforms.create(LEVEL_X_ORIGIN + 750, WORLD_HEIGHT - 210, 'platform4');
+    ledge.body.immovable = true;
+    ledge = platforms.create(LEVEL_X_ORIGIN + 850, WORLD_HEIGHT - 330, 'platform5');
+    ledge.body.immovable = true;
 
-     //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
-     bgground.scale.setTo(0.5, 0.75);
+    ledge = platforms.create(LEVEL_X_ORIGIN + 1300, WORLD_HEIGHT - 450, 'platform3');
+    ledge.body.immovable = true;
+    ledge = platforms.create(LEVEL_X_ORIGIN + 1630, WORLD_HEIGHT - 290, 'platform2');
+    ledge.body.immovable = true;
+    ledge = platforms.create(LEVEL_X_ORIGIN + 2220, WORLD_HEIGHT - 310, 'platform4');
+    ledge.body.immovable = true;
+    ledge = platforms.create(LEVEL_X_ORIGIN + 2020, WORLD_HEIGHT - 390, 'platform1');
+    ledge.body.immovable = true;
 
-     //  This stops it from falling away when you jump on it
-     bgground.body.immovable = true;
+    ledge = platforms.create(LEVEL_X_ORIGIN + 2530, WORLD_HEIGHT - 290, 'platform5');
+    ledge.body.immovable = true;
+    ledge = platforms.create(LEVEL_X_ORIGIN + 3090, WORLD_HEIGHT - 160, 'platform4');
+    ledge.body.immovable = true;
+    ledge = platforms.create(LEVEL_X_ORIGIN + 3100, WORLD_HEIGHT - 410, 'platform1');
+    ledge.body.immovable = true;
+    ledge = platforms.create(LEVEL_X_ORIGIN + 3360, WORLD_HEIGHT - 320, 'platform3');
+    ledge.body.immovable = true;
 
-    console.log(game.world);
-    //  Now let's create two ledges
+    ledge = platforms.create(LEVEL_X_ORIGIN + 3900, WORLD_HEIGHT - 200, 'platform1');
+    ledge.body.immovable = true;
+    ledge = platforms.create(LEVEL_X_ORIGIN + 4050, WORLD_HEIGHT - 300, 'platform4');
+    ledge.body.immovable = true;
+    ledge = platforms.create(LEVEL_X_ORIGIN + 4200, WORLD_HEIGHT - 400, 'platform1');
+    ledge.body.immovable = true;
+    ledge = platforms.create(LEVEL_X_ORIGIN + 4500, WORLD_HEIGHT - 400, 'platform3');
+    ledge.body.immovable = true;
+}
+
+function setPlatformsInfront(){
+
+    bgplatformInfront = game.add.group();
+
+    // PLATFORMER
+    bgplatformInfront.create(wallAB.x - 300, WORLD_HEIGHT - BUSH_HEIGHT + 100, 'bush');
+
+    //treebg1
+     // Here we create the background tree
+     let bgtree = bgplatformInfront.create(203, game.world.height - 680, 'tree');
+     bgtree.scale.setTo(0.65, 1);
+     //Here we create the bush of the background tree
+     let bush1 = bgplatformInfront.create(20, WORLD_HEIGHT - 760, 'bush');
+     bush1.scale.setTo(0.75, 0.75);
+
+     // Here we create the platforms of the game, tree branches
     //branch1
-    let ledge = platforms.create(135, 684, 'groundl');
+    let ledge = platforms.create(300, WORLD_HEIGHT - 180, 'groundr');
     ledge.body.immovable = true;
 
-    //ledge = platforms.create(130, 684, 'tree');
-    //ledge.body.immovable = true;
-    bgground = bgplatform.create(435, game.world.height - 515, 'tree');
-    bgground.scale.setTo(0.5, 0.75);
-
+    //branch to the left of the branch1
+    ledge = platforms.create(140, WORLD_HEIGHT - 300, 'groundl');
+    ledge.body.immovable = true;
     //branch2
-    ledge = platforms.create(260, 640, 'groundr');
+    ledge = platforms.create(500, WORLD_HEIGHT - 300, 'groundl');
     ledge.body.immovable = true;
+
     //branch3
-    ledge = platforms.create(380, 600, 'groundl');
+    ledge = platforms.create(705, WORLD_HEIGHT - 420, 'groundr');
     ledge.body.immovable = true;
 
     //branch4
-    ledge = platforms.create(510, 550, 'groundr');
+    ledge = platforms.create(835, WORLD_HEIGHT - 540, 'groundl');
     ledge.body.immovable = true;
 
-    //branch4left1
-    ledge = platforms.create(510, 330, 'groundr');
-    ledge.body.immovable = true;
+    //treebg3
+    bgtree = bgplatformInfront.create(890, game.world.height - 935, 'tree');
+    bgtree.scale.setTo(0.77, 1.4);
+    bush = bgplatformInfront.create(720, WORLD_HEIGHT - BUSH_HEIGHT, 'bush');
+    bush.scale.setTo(0.75, 0.75);
 
-    //branch4left2
-    ledge = platforms.create(440, 250, 'groundr');
-    ledge.body.immovable = true;
-
-    let bush = platforms.create(0, 175, 'bush');
-    bush.body.immovable = true;
-    //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
-    bush.scale.setTo(0.75, 0.6);
+    bgtree = bgplatformInfront.create(1020, game.world.height - 610, 'tree2');
+    bgtree.scale.setTo(1.79, 1.79);
 
     //branch5
-    ledge = platforms.create(630, 475, 'groundl');
+    ledge = platforms.create(1005, WORLD_HEIGHT - 650, 'groundr');
     ledge.body.immovable = true;
-
-    let bgground2 = bgplatform.create(670, game.world.height - 450, 'tree2');
-
-     //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
-     bgground2.scale.setTo(1.25, 1.25);
 
     //branch6
-    ledge = platforms.create(690, 390, 'groundl');
+    ledge = platforms.create(1315, WORLD_HEIGHT - 600, 'groundr');
     ledge.body.immovable = true;
+
+    //treebg5
+    bgtree = bgplatformInfront.create(1938, game.world.height - 935, 'tree');
+    bgtree.scale.setTo(0.77, 1.4);
+    bush = bgplatformInfront.create(1768, WORLD_HEIGHT - BUSH_HEIGHT, 'bush');
+    bush.scale.setTo(0.75, 0.75);
+
     //branch7
-    ledge = platforms.create(780, 345, 'groundl');
+    ledge = platforms.create(1425, WORLD_HEIGHT - 550, 'groundr');
     ledge.body.immovable = true;
-     //branch8
-     ledge = platforms.create(910, 375, 'groundr');
-     ledge.body.immovable = true;
+
+    //branch8
+    ledge = platforms.create(1685, WORLD_HEIGHT - 450, 'groundr');
+    ledge.body.immovable = true;
     //branch9
-    ledge = platforms.create(975, 450, 'groundr');
+    ledge = platforms.create(2055, WORLD_HEIGHT - 550, 'groundr');
     ledge.body.immovable = true;
+
     //branch10
-    ledge = platforms.create(1125, 475, 'groundl');
-    ledge.body.immovable = true;
-    //backgroundtree3
-    bgground = bgplatform.create(1175, game.world.height - 600, 'tree');
-    bgground.scale.setTo(1.25, 1);
-    //branch10
-    ledge = platforms.create(1350, 575, 'groundr');
+    ledge = platforms.create(2427, WORLD_HEIGHT - 620, 'groundr');
     ledge.body.immovable = true;
     //branch11
-    ledge = platforms.create(1500, 500, 'groundr');
+    ledge = platforms.create(2835, WORLD_HEIGHT - 460, 'groundr');
     ledge.body.immovable = true;
+
+    //treebg7
+    bgtree = bgplatformInfront.create(2723, game.world.height - 935, 'tree');
+    bgtree.scale.setTo(0.77, 1.4);
+    bush = bgplatformInfront.create(2553, WORLD_HEIGHT - BUSH_HEIGHT, 'bush');
+    bush.scale.setTo(0.75, 0.75);
 
     //branch12
-    ledge = platforms.create(1650, 450, 'groundr');
+    ledge = platforms.create(3225, WORLD_HEIGHT - 550, 'groundr');
     ledge.body.immovable = true;
     //branch13
-    ledge = platforms.create(1800, 575, 'groundr');
+    ledge = platforms.create(3555, WORLD_HEIGHT - 620, 'groundr');
     ledge.body.immovable = true;
+
+    //treebg9
+    bgtree = bgplatformInfront.create(3440, game.world.height - 935, 'tree');
+    bgtree.scale.setTo(0.77, 1.4);
+    bush = bgplatformInfront.create(3270, WORLD_HEIGHT - BUSH_HEIGHT, 'bush');
+    bush.scale.setTo(0.75, 0.75);
 
     //branch14
-    ledge = platforms.create(2000, 525, 'groundr');
+    ledge = platforms.create(3965, WORLD_HEIGHT - 610, 'groundr');
     ledge.body.immovable = true;
-    //branch14
-    ledge = platforms.create(2200, 500, 'groundr');
-    ledge.body.immovable = true;
-
-    // The player and its settings
-    player = game.add.sprite(32, game.world.height - 150, 'dude');
-
-    //  We need to enable physics on the player
-    game.physics.arcade.enable(player);
-
-    //  Player physics properties. Give the little guy a slight bounce.
-    player.body.bounce.y = 0.1;
-    player.body.gravity.y = 600;
-    player.body.collideWorldBounds = true;
-
-    //  Our two animations, walking left and right.
-    player.animations.add('left', [0, 1, 2, 3], 10, true);
-    player.animations.add('right', [5, 6, 7, 8], 10, true);
-
-    //  Finally some stars to collect
-    stars = game.add.group();
-
-    //  We will enable physics for any star that is created in this group
-    stars.enableBody = true;
-
-    // Same with bombs
-    bombs = game.add.group();
-    bombs.enableBody = true;
-
-    //  Here we'll create 12 of them evenly spaced apart
-    for (let i = 0; i < numStars; i++) {
-        //  Create a star inside of the 'stars' group
-        let star = stars.create(i * 250, 100, 'star');
-        //  Let gravity do its thing
-        star.body.gravity.y = 300;
-        //  This just gives each star a slightly random bounce value
-        star.body.bounce.y = 0.2 + Math.random() * 0.2;
-    }
-    for (let i = 0; i < 7; i++) {
-    let star2 = stars.create(i *65, 100, 'star');
-    //  Let gravity do its thing
-    star2.body.gravity.y = 300;
-    //  This just gives each star a slightly random bounce value
-    star2.body.bounce.y = 0.5 + Math.random() * 0.2;
-    }
-
-    // The score
-    scoreText = game.add.text(16, 16, 'Score: ' + score, {
-        fontSize: '32px',
-        fill: '#000'
-    });
-
-    // Sounds
-    soundVictory = game.add.audio('victory');
-    soundDefeat = game.add.audio('defeat');
-
-    //  Our controls.
-    cursors = game.input.keyboard.createCursorKeys();
-    game.camera.follow(player);
 }
-function createLevel() {
-    console.log("created");
 
-    console.log(game.world.width);
-    // Set World bounds (same size as the image background in this case)
-    game.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-    console.log(game.world.width);
-    // Background
-    let bg = game.add.tileSprite(0, 0, game.world.width, game.world.height, 'bgGame');
-    // Smooth scrolling of the background in both X and Y axis
-    bg.scrollFactorX = 0.7;
-    bg.scrollFactorY = 0.7;
-
-    // Collide with this image to exit level
-    platforms = game.add.group();
-
-    platforms.enableBody = true;
-
-    // Create ground and platforms (with enemies, stars and aids) according to JSON data
-    // Be aware that enemies ara not in a group. Each enemy is an instance and is stored in the array enemies
-    createGround();
-
-    createPlatforms();
-
-    // Now, set time and create the HUD
-    remainingTime = secondsToGo;
-    createHUD();
-
-    // Create player. Initial position according to JSON data
-    player = game.add.sprite(levelConfig.collectorStart.x, game.world.height -
-        levelConfig.collectorStart.y, 'collector');
-
-        console.log("Player: ", player)
-
-    player.anchor.setTo(0.5, 0.5);
-    game.physics.arcade.enable(player);
-
-    //  Player physics properties. Give the little guy a slight bounce.
-    player.body.bounce.y = 0.2;
-    player.body.gravity.y = BODY_GRAVITY;
-    player.body.collideWorldBounds = true;
-
-    // Camera follows the player inside the world
-    game.camera.follow(player);
-
-    //  Our two animations, walking left and right.
-    player.animations.add('left', [0, 1, 2, 3], 10, true);
-    player.animations.add('right', [5, 6, 7, 8], 10, true);
-
-    //  Our controls.
-    cursors = game.input.keyboard.createCursorKeys();
-
-    // Update elapsed time each second
-    timerClock = game.time.events.loop(Phaser.Timer.SECOND, updateTime, this);
-}
-/**
- * Game loop: update elements and check events
- */
-function gameUpdate() {
-    //  If game is already over do nothing
-    if (gameOver) {
-        return;
+function updatePlay(){
+    // Manage background music
+     if (!music){
+        //soundMusic.play();
+        //soundMusic.loop = true;
+        music = true;
     }
-    //  Collide the player, the stars and the bombs with the platforms
-    let hitPlatform = game.physics.arcade.collide(player, platforms);
-    game.physics.arcade.collide(stars, platforms);
-    game.physics.arcade.collide(bombs, platforms);
+ 
 
-    //  Checks to see if the player overlaps with any of the stars, if he does call the
-    //  collectStar function
-    game.physics.arcade.overlap(player, stars, collectStar, null, this);
+    // Check if squirrel has passed to the next part
+    if(squirrel.x > LEVEL_X_ORIGIN){
+        gameState = AVOID_ENEMIES;
+        squirrel_initial_x = LEVEL_X_ORIGIN + 32;
+        squirrel_initial_y = WORLD_HEIGHT - 500;
+        game.camera.deadzone = new Phaser.Rectangle(300, 0, 200, 500);
+    }
+    
+    if (squirrel.x > LEVEL_X_ORIGIN + 5500){
+        gameState = WORD_GAME;
 
-    // Same with bombs
-    game.physics.arcade.overlap(player, bombs, hitBomb, null, this);
+        if(entraJuegoPalabras){
+            palabraActual = nuevaPalabra(misPalabras);
+            scorePalabras = 0;
+            entraJuegoPalabras = false;
+        }
+    }
 
-    //  Reset the players velocity (movement)
-    player.body.velocity.x = 0;
+    //  Check collisions
+    let hitPlatform = game.physics.arcade.collide(squirrel, platforms);
+    let hitGround = game.physics.arcade.collide(squirrel, ground);
+    let hitWall = game.physics.arcade.collide(squirrel, wallAB);
 
-    if (cursors.left.isDown) {
-        //  Move to the left
-        player.body.velocity.x = -150;
-        player.animations.play('left');
-    } else if (cursors.right.isDown) {
-        //  Move to the right
-        player.body.velocity.x = 150;
-        player.animations.play('right');
+    if(gameState != WORD_GAME){
+        //  Reset the players velocity (movement)
+        squirrel.body.velocity.x = 0;
+
+        if (cursors.left.isDown) {
+            //  Move to the left
+            squirrel.body.velocity.x = -SQUIRREL_VELOCITY;
+            squirrel.animations.play('walk_left');
+            toRight = false;
+        } else if (cursors.right.isDown) {
+            //  Move to the right
+            squirrel.body.velocity.x = SQUIRREL_VELOCITY;
+            squirrel.animations.play('walk_right');
+            toRight = true;
+        } else {
+            //  Stand still
+            squirrel.animations.stop();
+            squirrel.frame = toRight? 7 : 6;
+        }
+
+        // Allow the player to jump if they are touching the ground and haven't used all of their jumps
+        if(gameState == PLATFORMER && currentJump > 0){
+            if (cursors.up.isDown && squirrel.body.touching.down && (hitPlatform || hitGround || hitWall)) {
+                squirrel.body.velocity.y = -JUMP;
+                squirrel.animations.stop();
+                squirrel.frame = 1;
+                //soundJump.play();
+                //The current jumps decreases by 1 if the player jumps
+                currentJump = currentJump - 1;
+                jumpsHUD.frame = currentJump;
+                
+            }   
+            
+            if(currentJump === 0){
+                gameOver();
+            }
+
+            manageSign();
+        }
+        // If we are in the second part, jump normally
+        else if(gameState == AVOID_ENEMIES){
+            if (cursors.up.isDown && squirrel.body.touching.down && (hitPlatform || hitGround || hitWall)) {
+                squirrel.body.velocity.y = -JUMP;
+                squirrel.animations.stop();
+                squirrel.frame = 1;
+                //soundJump.play(); 
+            }  
+            // Move eagles and foxes
+            eagles.forEachAlive(eaglesMovement, this);
+            foxes.forEachAlive(foxesMovement, this);
+
+            // Check collisions
+            game.physics.arcade.overlap(squirrel,eagles, enemyHitsSquirrel,null,this);
+            game.physics.arcade.overlap(squirrel,foxes, enemyHitsSquirrel,null,this);  
+        }
+    }
+
+    else{
+        //  Reset the players velocity (movement)
+        squirrel.body.velocity.x = 0;
+        squirrel.frame = toRight? 7 : 6;
+
+        /////////////// UpdateP
+        if(gameState == WORD_GAME) showVariables(word, wordsFound, palabraActual, scorePalabras, timeRemaining)
+        else timeRemaining = 10;
+
+        if(timeRemaining < 1){
+            palabraActual = nuevaPalabra(misPalabras);
+            scorePalabras -= 100;
+            timeRemaining = 10;
+        }
+        ///////////////        
+    }
+
+}
+
+function manageSign(){
+    if(squirrel.x > sign.x - 50 && squirrel.x < sign.x + sign.width + 50 && squirrel.y > sign.y - sign.height - 50){
+        rect.visible = true;
+        signText.visible = true;
+        signTextContainer.visible = true;
     } else {
-        //  Stand still
-        player.animations.stop();
-        player.frame = 4;
-    }
-
-    // Allow the player to jump if they are touching the ground.
-    if (cursors.up.isDown && player.body.touching.down && hitPlatform) {
-        player.body.velocity.y = -325;
+        rect.visible = false;
+        signText.visible = false;
+        signTextContainer.visible = false;  
     }
 }
 
-function collectStar(player, star) {
-    // Removes the star from the screen
-    star.kill();
-    numStars--;
-    // Add and update the score
-    score += 10;
-    scoreText.text = 'Score: ' + score;
-
-    // If there are no more stars, reset them and drop a bomb
-    if (numStars === 0) {
-        stars.forEachDead(function (s) {
-            s.revive();
-            s.y = 0;
-        });
-        numStars = TOTAL_STARS;
-        let x = (player.x < 400) ? Phaser.Math.between(400, 800) : Phaser.Math.between(0, 400);
-        let bomb = bombs.create(x, 16, 'bomb');
-        bomb.body.bounce.x = bomb.body.bounce.y = 1;
-        bomb.body.collideWorldBounds = true;
-        bomb.body.velocity.x = Phaser.Math.between(-200, 200);
-        bomb.body.velocity.y = 200;
-        bomb.body.allowGravity = false;
+function foxesMovement(fox){
+    let foxHitGround = game.physics.arcade.collide(fox, ground);
+    if(squirrel.y < WORLD_HEIGHT - 300 && (fox.x - squirrel.x) < 300 && squirrel.x < fox.x && fox.body.touching.down && foxHitGround){
+        fox.body.velocity.y = -FOXES_VELOCITY_Y;
+        foxCall.play();
+        fox.animations.play('jump');
     }
-
-    // check if the player wins
-    if (score > VICTORY_POINTS) {
-        victoryAtEnd = true;
-        endGame();
+    else if (fox.body.touching.down){
+        fox.animations.play('walk');
     }
 }
 
-function hitBomb(player, bomb) {
-    player.tint = 0xff0000;
-    victoryAtEnd = false;
-    endGame();
+function eaglesMovement(eagle){
+    if(eagle.body.y <= WORLD_HEIGHT - 600){
+        eagle.body.velocity.y = 70;
+    }
+    else if(eagle.body.y >= WORLD_HEIGHT - 300){
+        eagle.body.velocity.y = -70;
+    }
 }
 
-function endGame() {
-    // Game Over
-    gameOver = true;
+function enemyHitsSquirrel(squirrel, enemy){
+    EnergyValue = Math.max(0, EnergyValue - 1);
+    energyHUD.frame = EnergyValue;
+    squirrel.body.x += enemy.width + 10;
 
-    // Stop and reset input
-    game.input.enabled = false;
-    cursors.left.reset(true);
-    cursors.right.reset(true);
-    cursors.up.reset(true);
-    cursors.down.reset(true);
+    if (EnergyValue == 0){
+        gameOver();
+    }
+}
 
-    // Stop player
-    player.animations.stop();
-    player.frame = 4;
-    player.body.velocity.x = player.body.velocity.y = 0;
-    player.body.bounce.y = 0;
-    player.body.gravity.y = 0;
+function gameOver(){
+    game.paused = true;
+    gameOverImg = game.add.image(game.camera.centerX, game.camera.centerY - 80, 'gameOver');
+    gameOverImg.anchor.setTo(0.5, 0.5);
+    replayButton = game.add.button(gameOverImg.x, gameOverImg.y + gameOverImg.height + 50, 'playButton', restart);
+    replayButton.anchor.setTo(0.5, 0.5);
+    if(spacebarKey.justDown){
+        restart();
+    } 
+}
 
-    // Cleaning...
-    stars.removeAll(true);
-    bombs.removeAll(true);
+function restart(){
+    game.paused = false;
+    squirrel.x = squirrel_initial_x;
+    squirrel.y = squirrel_initial_y;
+    replayButton.kill();
+    gameOverImg.kill();
 
-    // Final animation (a tween)
-    let finalTween = game.add.tween(player.scale).to({
-            x: 2,
-            y: 2
-        }, 1000,
-        Phaser.Easing.Cubic.Out, true, 0, 2, true);
+    if(gameState == PLATFORMER){
+        currentJump = MAX_JUMPS;
+        jumpsHUD.frame = currentJump;
+    }else if(gameState == AVOID_ENEMIES){
+        EnergyValue = 6;
+        energyHUD.frame = EnergyValue;
+        eagles.callAll('kill');
+        foxes.callAll('kill');        
+    }    
+}
 
-    finalTween.onComplete.add(function () {
-        player.destroy();
-        platforms.removeAll(true);
-        game.state.start('final');
-    });
+function endGame(){
+    game.state.start('end');
+}
 
-    if (victoryAtEnd) {
-        soundVictory.play();
-    } else {
-        soundDefeat.play();
+/* function render(){
+    platforms.forEachAlive(renderGroup, this);
+}
+
+function renderGroup(member) {   
+     game.debug.body(member);
+} */
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// buscar por palabrasCode
+
+function mostrarImagenPalabra(palabra){
+    if(gameState == WORD_GAME){
+        imagenPalabra.destroy();
+        imagenPalabra = game.add.sprite(STAGE_WIDTH/2, STAGE_HEIGHT/2, palabra);
+        imagenPalabra.fixedToCamera = true;
+        imagenPalabra.width = 100;
+        imagenPalabra.height = 100; 
+    }   
+}
+
+function nuevaPalabra(palabras){
+    //pillamos indice entre 0 y el tamaño del array de palabras y devuelve el contenido de ese indice de palabras
+    palabraActual = "";
+    let randomIndex = getRandomInt(1, palabras.length) - 1
+
+    mostrarImagenPalabra(palabras[randomIndex]);
+
+    return palabras[randomIndex];
+}
+
+//función para conseguir un random entre min y max
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+//mostrar estado de variables por pantalla
+function showVariables(word, found, pActual, score, time){
+    wordText.destroy();
+    wordFoundText.destroy();
+    palabraActualText.destroy();
+
+    scorePalabrasText.destroy();
+
+    timerTextPalabras.destroy();
+
+    wordText = game.add.text(30, 30, "Tu palabra: " + word, {fill:'#000000'});
+    wordText.fixedToCamera = true;
+    wordFoundText = game.add.text(30, 60, "Encontrada: " + found, {fill:'#000000'});
+    wordFoundText.fixedToCamera = true;
+    palabraActualText = game.add.text(30, 90, "Palabra actual: " + pActual, {fill:'#000000'});
+    palabraActualText.fixedToCamera = true;
+    
+    timerTextPalabras = game.add.text(550, 20, "timerPalabras: " + time, {fill:'#000000'});
+    timerTextPalabras.fixedToCamera = true;
+
+    scorePalabrasText = game.add.text(550, 50, "score: " + score, {fill:'#000000'});
+    scorePalabrasText.fixedToCamera = true;
+}
+
+//si hay una presion de tecla hace lo de la funcion
+function keyPress(char){
+
+    if(gameState == WORD_GAME){
+        charText.destroy();
+        charText = game.add.text(30, 120, "char: " + char.key, {fill:'#000000'});
+        charText.fixedToCamera = true;
+
+        console.log("Codigo: " + char.keyCode)
+        //mientras que lo que escribe el jugador sea mas pequeño que la palabra dada va escibiendo
+        if (char.keyCode != 13){ //enter
+            if (word.length < palabraActual.length && ((char.keyCode >= 65 && char.keyCode <= 90) || char.keyCode == 32)){
+                word += char.key;
+            }
+            else if (word.length >= 0 && char.keyCode == 8) { //backspace
+                word = word.slice(0, word.length-1);
+            }
+        }
+        else {
+            wordFound = palabraIgual(word, palabraActual)
+            if (wordFound){
+                wordsFound += 1;
+                if(timeRemaining >= 5){
+                    scorePalabras += 100;
+                }
+                else if(timeRemaining > 0){
+                    scorePalabras += 50;
+                }
+            }
+            else scorePalabras -= 100;
+            word = "";
+            palabraActual = nuevaPalabra(misPalabras);
+            timeRemaining = 10;
+        }
+    }
+}
+
+function palabraIgual(word1, word2){
+    return (word1 == word2)
+}
+
+function updateCounter() {
+    if(timeRemaining > 0){
+        timeRemaining--;
     }
 }
