@@ -101,6 +101,8 @@ var imagenPalabra;
 
 var entraJuegoPalabras = true; //esta variable mira si es la primera vez que entramos al juego palabras
 
+const TIEMPO_PALABRAS = 20;
+
 /////////////////////////
 
 let playState = {
@@ -237,7 +239,7 @@ function createPlay(){
     console.log(misPalabras.length);
 
     palabraActual = nuevaPalabra(misPalabras);
-    //////////////////////////
+
     wordsFound = 0;
     scorePalabras = 0;
     squirrel.x = 9800; //test
@@ -614,7 +616,7 @@ function updatePlay(){
         if(timeRemaining < 1 && gameState != END){
             palabraActual = nuevaPalabra(misPalabras);
             scorePalabras -= 100;
-            timeRemaining = 10;
+            timeRemaining = TIEMPO_PALABRAS;
             word = "";
         }
         ///////////////        
@@ -799,17 +801,22 @@ function keyPress(char){
             wordFound = palabraIgual(word, palabraActual)
             if (wordFound){
                 wordsFound += 1;
-                if(timeRemaining >= 5){
-                    scorePalabras += 100;
+                if(timeRemaining >= TIEMPO_PALABRAS/2){
+
+                    //score si la palabra es bien y tiempo es fast
+                    scorePalabras += 200;
                 }
                 else if(timeRemaining > 0){
-                    scorePalabras += 50;
+
+                    //score si la palabra es bien y tiempo es slow
+                    scorePalabras += 150;
                 }
                 misPalabras[indicePalabra][1] = true;
             }
+            //score si la palabra es mal
             else scorePalabras -= 100;
             word = "";
-            timeRemaining = 10;
+            timeRemaining = TIEMPO_PALABRAS;
 
             //comprobamos si hemos encontrado todas las palabras
             if (wordsFound == misPalabras.length) endPalabras();
