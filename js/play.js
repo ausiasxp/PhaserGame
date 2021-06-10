@@ -18,6 +18,7 @@ const font_time = 'sniglet';
 const PLATFORMER = 0;
 const AVOID_ENEMIES = 1;
 const WORD_GAME = 2;
+const END = 3;
 
 // PLATFORM
 const VICTORY_POINTS = 500;
@@ -87,6 +88,7 @@ let wordText;
 
 let palabraActual;
 let palabraActualText;
+let indicePalabra;
 
 let charText;
 
@@ -197,7 +199,7 @@ function createPlay(){
     total_timeHUD.strokeThickness = 8;
     total_timeHUD.fill = '#ffffff';
 
-    ////////////////////////// WORDS
+    ////////////////////////// CreateP
 
     wordText = game.add.text(30, 30, "", {fill:'#000000'});
     wordFoundText = game.add.text(30, 60, "", {fill:'#000000'});
@@ -229,8 +231,16 @@ function createPlay(){
 
     //Inicializamos la lista de palabras y la palabra actual
     misPalabras = ["phaser", "amogus", "amengual", "manzana", "ornitorrinco", "juegos", "palabra", "lorem ipsum"];
+    
+    //false es que aún no ha sido encontrada, true es que ha sido encontrada
+    for (i in misPalabras) misPalabras[i] = [misPalabras[i], false];
+    console.log(misPalabras);
+    console.log(misPalabras.length);
+
     palabraActual = nuevaPalabra(misPalabras);
     //////////////////////////
+
+    squirrel.x = 9800; //test
 }
 
 function updateTime(){
@@ -600,12 +610,12 @@ function updatePlay(){
 
         /////////////// UpdateP
         if(gameState == WORD_GAME) showVariables(word, wordsFound, palabraActual, scorePalabras, timeRemaining)
-        else timeRemaining = 10;
 
-        if(timeRemaining < 1){
+        if(timeRemaining < 1 && gameState != END){
             palabraActual = nuevaPalabra(misPalabras);
             scorePalabras -= 100;
             timeRemaining = 10;
+            word = "";
         }
         ///////////////        
     }
@@ -716,11 +726,24 @@ function mostrarImagenPalabra(palabra){
 function nuevaPalabra(palabras){
     //pillamos indice entre 0 y el tamaño del array de palabras y devuelve el contenido de ese indice de palabras
     palabraActual = "";
+
+    //pillamos indice aleatorio entre 0 y el largo del array
     let randomIndex = getRandomInt(1, palabras.length) - 1
 
-    mostrarImagenPalabra(palabras[randomIndex]);
+    console.log("Estoy buscando una palabra.")
+    //buscamos indice cuya palabra asociada no haya sido encontrada
+    while (palabras[randomIndex][1]){
+        randomIndex = getRandomInt(1, palabras.length) - 1
+    }
 
-    return palabras[randomIndex];
+    mostrarImagenPalabra(palabras[randomIndex][0]);
+
+    console.log(palabras);
+
+    indicePalabra = randomIndex;
+    console.log(indicePalabra)
+
+    return palabras[indicePalabra][0];
 }
 
 //función para conseguir un random entre min y max
@@ -740,7 +763,7 @@ function showVariables(word, found, pActual, score, time){
 
     timerTextPalabras.destroy();
 
-    wordText = game.add.text(30, 30, "Tu palabra: " + word, {fill:'#000000'});
+    wordText = game.add.text(30, 30, "Tu palabra: " + addSpaces(word, pActual), {fill:'#000000'});
     wordText.fixedToCamera = true;
     wordFoundText = game.add.text(30, 60, "Encontrada: " + found, {fill:'#000000'});
     wordFoundText.fixedToCamera = true;
@@ -764,7 +787,7 @@ function keyPress(char){
 
         console.log("Codigo: " + char.keyCode)
         //mientras que lo que escribe el jugador sea mas pequeño que la palabra dada va escibiendo
-        if (char.keyCode != 13){ //enter
+        if (word.length != palabraActual.length && char.keyCode != 13){ //enter no pulsado
             if (word.length < palabraActual.length && ((char.keyCode >= 65 && char.keyCode <= 90) || char.keyCode == 32)){
                 word += char.key;
             }
@@ -782,13 +805,30 @@ function keyPress(char){
                 else if(timeRemaining > 0){
                     scorePalabras += 50;
                 }
+                misPalabras[indicePalabra][1] = true;
             }
             else scorePalabras -= 100;
             word = "";
-            palabraActual = nuevaPalabra(misPalabras);
             timeRemaining = 10;
+
+            //comprobamos si hemos encontrado todas las palabras
+            if (wordsFound == misPalabras.length) endPalabras();
+            else palabraActual = nuevaPalabra(misPalabras);
         }
     }
+}
+
+function endPalabras(){
+    console.log("El juego ha acabado.")
+    gameState = END;
+    endGame();
+}
+
+function addSpaces(palabra, palabraCompleta){
+    let palabraEspacios = "";
+    for (i of palabra) palabraEspacios += (i + " ");
+    for (i = 0; i< palabraCompleta.length - palabra.length; i++) palabraEspacios += " _";
+    return palabraEspacios;
 }
 
 function palabraIgual(word1, word2){
@@ -796,7 +836,7 @@ function palabraIgual(word1, word2){
 }
 
 function updateCounter() {
-    if(timeRemaining > 0){
+    if(timeRemaining > 0 && gameState == WORD_GAME){
         timeRemaining--;
     }
 }
