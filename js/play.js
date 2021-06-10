@@ -1,7 +1,6 @@
 // PENDIENTE
 // Change sign to a more polite one (or not idk)
 // plataformas movible
-// ZONA C!!
 // Nivel optativo
 // Terminar pantalla final
 
@@ -225,7 +224,7 @@ function createPlay(){
     //Minijuego palabras
     game.input.keyboard.addCallbacks(this, keyPress, null, null); //pillamos input de teclado para llamar a keyPress
 
-    // Initialize first 
+        // Initialize first 
     imagenPalabra = game.add.sprite(0, STAGE_HEIGHT*2, "almond");
     mostrarImagenPalabra("almond");
 
@@ -239,7 +238,8 @@ function createPlay(){
 
     palabraActual = nuevaPalabra(misPalabras);
     //////////////////////////
-
+    wordsFound = 0;
+    scorePalabras = 0;
     squirrel.x = 9800; //test
 }
 
