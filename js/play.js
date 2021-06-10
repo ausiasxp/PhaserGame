@@ -129,15 +129,15 @@ function loadPlayAssets(){
     loadPlayAssetsAvoidEnemies();
 
     ///////////// WORDS
-    //["phaser", "amogus", "amengual", "manzana", "ornitorrinco", "juegos", "palabra", "lorem ipsum"]
-    game.load.image('phaser', 'assets/images/phaserImg.png');
-    game.load.image('amogus', 'assets/images/amogusImg.png');
-    game.load.image('amengual', 'assets/images/amengualImg.png');
-    game.load.image('manzana', 'assets/images/manzanaImg.png');
-    game.load.image('ornitorrinco', 'assets/images/ornitorrincoImg.png');
-    game.load.image('juegos', 'assets/images/juegosImg.png');
-    game.load.image('palabra', 'assets/images/palabraImg.png');
-    game.load.image('lorem ipsum', 'assets/images/loremImg.jpg');
+    //["cashew", "almond", "hazelnut", "peanut", "pistachio", "pumpkinseed", "sunflowerseed", "walnut"]
+    game.load.image('cashew', 'assets/images/cashew.png');
+    game.load.image('almond', 'assets/images/almond.png');
+    game.load.image('hazelnut', 'assets/images/hazelnut.png');
+    game.load.image('peanut', 'assets/images/peanut.png');
+    game.load.image('pistachio', 'assets/images/pistachio.png');
+    game.load.image('pumpkin seed', 'assets/images/pumpkin_seeds.png');
+    game.load.image('sunflower seed', 'assets/images/sunflower_seeds.png');
+    game.load.image('walnut', 'assets/images/walnut.png');
     /////////////
 }
 
@@ -226,11 +226,11 @@ function createPlay(){
     game.input.keyboard.addCallbacks(this, keyPress, null, null); //pillamos input de teclado para llamar a keyPress
 
     // Initialize first 
-    imagenPalabra = game.add.sprite(0, STAGE_HEIGHT*2, "amogus");
-    mostrarImagenPalabra("amogus");
+    imagenPalabra = game.add.sprite(0, STAGE_HEIGHT*2, "almond");
+    mostrarImagenPalabra("almond");
 
     //Inicializamos la lista de palabras y la palabra actual
-    misPalabras = ["phaser", "amogus", "amengual", "manzana", "ornitorrinco", "juegos", "palabra", "lorem ipsum"];
+    misPalabras = ["cashew", "almond", "hazelnut", "peanut", "pistachio", "pumpkin seed", "sunflower seed", "walnut"];
     
     //false es que aún no ha sido encontrada, true es que ha sido encontrada
     for (i in misPalabras) misPalabras[i] = [misPalabras[i], false];
