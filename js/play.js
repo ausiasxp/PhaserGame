@@ -267,8 +267,6 @@ function createPlay(){
 
     wrongSF = game.add.audio('wrong');
     correctSF = game.add.audio('correct');
-
-    entraJuegoPalabras = true;
     
 }
 
