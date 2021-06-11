@@ -1,5 +1,5 @@
 // PENDIENTE
-// Parallax
+// Change sign to a more polite one (or not idk)
 // plataformas movible
 // Nivel optativo
 // Terminar pantalla final
@@ -48,7 +48,7 @@ const PLAYER_COLLIDE_OFFSET_X = 200;
 // GLOBAL 
 let gameState = 0;  // Start at platformer
 let squirrel;
-let bg_back, bg_mid, bg_light, bg_front;
+let bg;
 let platforms, ground;
 let toRight = false;
 let cursors, spacebarKey;
@@ -113,12 +113,6 @@ let playState = {
 };
 
 function loadPlayAssets(){
-    // BACKGROUND
-    game.load.image('bg_back', 'assets/images/parallax-forest-back-trees.png');
-    game.load.image('bg_mid', 'assets/images/parallax-forest-middle-trees.png');
-    game.load.image('bg_light', 'assets/images/parallax-forest-lights.png');
-    game.load.image('bg_front', 'assets/images/parallax-forest-front-trees.png');
-
     // PLATFORMER
     game.load.image('groundr', 'assets/images/platform.png');
     game.load.image('groundl', 'assets/images/platformleft.png');
@@ -153,7 +147,7 @@ function createPlay(){
     game.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
     // Background
-    createBG();
+    bg = game.add.tileSprite(0, 0, game.world.width, game.world.height, 'bgGame');
 
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys(); 
@@ -248,21 +242,7 @@ function createPlay(){
 
     wordsFound = 0;
     scorePalabras = 0;
-}
-
-function createBG(){
-    bg_back = game.add.tileSprite(0, 0, WORLD_WIDTH, WORLD_HEIGHT, 'bg_back');
-    bg_back.anchor.setTo(0, 0);
-
-    bg_mid = game.add.tileSprite(0, 0, WORLD_WIDTH, WORLD_HEIGHT, 'bg_mid');
-    bg_mid.anchor.setTo(0, 0);
-
-    bg_light = game.add.tileSprite(0, 0, WORLD_WIDTH, WORLD_HEIGHT, 'bg_light');
-    bg_light.anchor.setTo(0, 0);
-
-    bg_front = game.add.tileSprite(0, 0, WORLD_WIDTH, WORLD_HEIGHT, 'bg_front');
-    bg_front.anchor.setTo(0, 0);
-
+    squirrel.x = 9800; //test
 }
 
 function updateTime(){
@@ -543,13 +523,7 @@ function updatePlay(){
         //soundMusic.loop = true;
         music = true;
     }
-
-    // Parallax effect for the background
-    bg_back.x = game.camera.x * 0.5;
-    bg_mid.x = game.camera.x * 0.425;
-    bg_light.x = game.camera.x * 0.375;
-    bg_front.x = game.camera.x * 0.3;
-
+ 
 
     // Check if squirrel has passed to the next part
     if(squirrel.x > LEVEL_X_ORIGIN){

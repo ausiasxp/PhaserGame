@@ -14,6 +14,7 @@ function loadSprites() {
 }
 
 function loadImages(){
+    game.load.image('bgGame', 'assets/images/parallax-forest.png');
     game.load.image('ground', 'assets/images/ground.png');
     game.load.image('fox', '/assets/images/fox.png');
     game.load.image('gameOver', 'assets/images/gameOver.png');
