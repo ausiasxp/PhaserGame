@@ -16,7 +16,7 @@ const JUMP = 600;
 const SQUIRREL_VELOCITY = 300;
 const font_sign = 'Sniglet';
 const font_time = 'sniglet';
-const GLOBAL_INITAL_X = 9000;
+const GLOBAL_INITAL_X = 32;
 
 //game states
 const PLATFORMER = 0;
@@ -268,7 +268,7 @@ function createPlay(){
     rectBGwords.visible = false;
 
     // Initialize first 
-    imagenPalabra = game.add.sprite(rectBGwords.x + rectBGwords.width/2, rectBGwords.y + rectBGwords.height/2, "almond");
+    imagenPalabra = game.add.sprite(0, STAGE_HEIGHT*2, "almond");
     mostrarImagenPalabra("almond");
 
     //Inicializamos la lista de palabras y la palabra actual
@@ -285,7 +285,8 @@ function createPlay(){
     wrongSF = game.add.audio('wrong');
     correctSF = game.add.audio('correct');
 
-    foundTxt = game.add.text(wordFoundText.x, wordFoundText.y + 10, "found", {
+    // HUD
+    foundTxt = game.add.text(150, 80, "found", {
         fontSize: '10pt',
         font: font_time
     });
@@ -296,7 +297,7 @@ function createPlay(){
     foundTxt.fill = '#ffffff';
     foundTxt.visible = false;
 
-    timeTxt = game.add.text(timerTextPalabras.x, timerTextPalabras.y + 35, "time", {
+    timeTxt = game.add.text(STAGE_WIDTH - 70, 85, "time", {
         fontSize: '10pt',
         font: font_time
     });
@@ -307,7 +308,7 @@ function createPlay(){
     timeTxt.fill = '#ffffff';
     timeTxt.visible = false;
 
-    scoreTxt = game.add.text(scorePalabrasText.x, scorePalabrasText.y + 35, "score", {
+    scoreTxt = game.add.text(STAGE_WIDTH/2,85, "score", {
         fontSize: '10pt',
         font: font_time
     });
@@ -320,7 +321,7 @@ function createPlay(){
 
 
     /////////// NUT_CATCHER
-    fallingNut = game.add.sprite(0, STAGE_HEIGHT + 50, "almond")
+    fallingNut = game.add.sprite(0, WORLD_HEIGHT + 50, "star")
     firsNut = true;
 
     gameState = PLATFORMER;
@@ -663,7 +664,7 @@ function updatePlay(){
         //  Reset the players velocity (movement)
         squirrel.body.velocity.x = 0;
 
-        if ((cursors.left.isDown && squirrel.x < LEVEL_X_ORIGIN + 4600 && gameState != NUT_CATCHER)
+        if ((cursors.left.isDown && squirrel.x < LEVEL_X_ORIGIN + 5300 && gameState != NUT_CATCHER)
             || (cursors.left.isDown && squirrel.x > LEVEL_X_ORIGIN + 5370 && gameState == NUT_CATCHER)) {
             //  Move to the left, but don't allow to go back at some points
             squirrel.body.velocity.x = -SQUIRREL_VELOCITY;
