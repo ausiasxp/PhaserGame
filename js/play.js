@@ -4,9 +4,15 @@
 // plataformas movible
 // Nivel optativo
 // Terminar pantalla final
+// Hacer que las ardillas dejen de spawnear antes de lo de las palabras: hay un bug que si te pegan y entras
+//   en el juego de las palabras la imagen no está centrada
+// Hacer que se quite la interfaz de plataformeo durante el juego de las palabras
+// Quitar test
+// Quitar texto restante despues de acabar juego de palabras
+
 
 // GLOBAL
-const WORLD_WIDTH = 10000;
+const WORLD_WIDTH = 10500;
 const WORLD_HEIGHT = 900;//before:800
 const GRAVITY = 1000;
 const JUMP = 600;
@@ -19,7 +25,8 @@ const GLOBAL_INITAL_X = 9300;
 const PLATFORMER = 0;
 const AVOID_ENEMIES = 1;
 const WORD_GAME = 2;
-const END = 3;
+const NUT_CATCHER = 3;
+const END = 4;
 
 // PLATFORM
 const VICTORY_POINTS = 500;
@@ -47,11 +54,11 @@ const FOXES_VELOCITY_Y = 800;
 const PLAYER_COLLIDE_OFFSET_X = 200;
 
 // WORD GAME
-const TIEMPO_PALABRAS = 20;
+const TIEMPO_PALABRAS = 40;
 
 
 // GLOBAL 
-let gameState = 0;  // Start at platformer
+let gameState = PLATFORMER;  // Start at platformer
 let squirrel;
 let bg_back, bg_mid, bg_light, bg_front;
 let platforms, ground;
@@ -105,10 +112,23 @@ var scorePalabrasText;
 
 var imagenPalabra;
 
-var entraJuegoPalabras = true; //esta variable mira si es la primera vez que entramos al juego palabras
-
 let wrongSF, correctSF;
 let rectBGwords;
+
+let foundTxt;
+let timeTxt;
+let scoreTxt;
+
+/////////////////////
+
+////////////////////// NUT CATCHER
+
+let fallingNut;
+let generadorNut;
+let firsNut;
+
+//////////////////////
+
 
 let playState = {
     preload: loadPlayAssets,
@@ -231,7 +251,7 @@ function createPlay(){
     //  Create our Timer
     timerPalabras = game.time.create(false);
 
-    //  Set a TimerEvent to occur after 2 seconds
+    //  Set a TimerEvent to occur after 1 second
     timerPalabras.loop(1000, updateCounter, this);
 
     //  Start the timerPalabras running - this is important!
@@ -268,7 +288,12 @@ function createPlay(){
     wrongSF = game.add.audio('wrong');
     correctSF = game.add.audio('correct');
 
-    entraJuegoPalabras = true;
+
+    /////////// NUT_CATCHER
+    fallingNut = game.add.sprite(0, STAGE_HEIGHT + 50, "almond")
+    firsNut = true;
+
+    gameState = PLATFORMER;
     
 }
 
@@ -574,23 +599,27 @@ function updatePlay(){
 
 
     // Check if squirrel has passed to the next part
-    if(squirrel.x > LEVEL_X_ORIGIN){
+    if(squirrel.x > LEVEL_X_ORIGIN && gameState == PLATFORMER){
         gameState = AVOID_ENEMIES;
         squirrel_initial_x = LEVEL_X_ORIGIN + 32;
         squirrel_initial_y = WORLD_HEIGHT - 500;
         game.camera.deadzone = new Phaser.Rectangle(300, 0, 200, 500);
     }
     
-    if (squirrel.x > LEVEL_X_ORIGIN + 5300){
+    if (squirrel.x > LEVEL_X_ORIGIN + 5300 && gameState == AVOID_ENEMIES){
         gameState = WORD_GAME;
-
-        if(entraJuegoPalabras){
-            palabraActual = nuevaPalabra(misPalabras);
-            scorePalabras = 0;
-            entraJuegoPalabras = false;
-            rectBGwords.visible = true;
-        }
+        console.log(gameState);
+        console.log(wordsFound);
+        palabraActual = nuevaPalabra(misPalabras);
+        scorePalabras = 0;
+        rectBGwords.visible = true;
     }
+
+    if(squirrel.x > LEVEL_X_ORIGIN + 5000 && gameState == NUT_CATCHER){
+        game.camera.deadzone = new Phaser.Rectangle(0, 0, 0, 0);
+    }
+
+
 
     //  Check collisions
     let hitPlatform = game.physics.arcade.collide(squirrel, platforms);
@@ -601,8 +630,9 @@ function updatePlay(){
         //  Reset the players velocity (movement)
         squirrel.body.velocity.x = 0;
 
-        if (cursors.left.isDown) {
-            //  Move to the left
+        if ((cursors.left.isDown && squirrel.x > LEVEL_X_ORIGIN + 4600 && gameState != NUT_CATCHER)
+            || (cursors.left.isDown && squirrel.x > LEVEL_X_ORIGIN + 5370 && gameState == NUT_CATCHER)) {
+            //  Move to the left, but don't allow to go back at some points
             squirrel.body.velocity.x = -SQUIRREL_VELOCITY;
             squirrel.animations.play('walk_left');
             toRight = false;
@@ -652,25 +682,42 @@ function updatePlay(){
             game.physics.arcade.overlap(squirrel,eagles, enemyHitsSquirrel,null,this);
             game.physics.arcade.overlap(squirrel,foxes, enemyHitsSquirrel,null,this);  
         }
-    }
 
-    else{
+        else if(gameState == NUT_CATCHER && squirrel.x > LEVEL_X_ORIGIN + 5360){
+
+            if(firsNut){
+                fallingNut.y = -50;
+                firsNut = false;
+            }
+
+            if(fallingNut.y < 0){
+                console.log("generando nut");
+                console.log(fallingNut.x, fallingNut.y);
+                fallingNut.x = getRandomInt(LEVEL_X_ORIGIN + 5360, LEVEL_X_ORIGIN + 5360 + STAGE_WIDTH - fallingNut.width);
+                fallingNut.y = 50;
+            }
+
+            fallingNut.body.velocity.y = 300;
+
+            game.physics.arcade.overlap(squirrel, fallingNut, nutCaught, null, this);
+
+            if(fallingNut.y > STAGE_HEIGHT + squirrel.y + fallingNut.height) fallingNut.y = -50;
+        }
+    }
+    else {
         //  Reset the players velocity (movement) 
         squirrel.body.velocity.x = 0;
         squirrel.frame = toRight? 7 : 6;
 
-        /////////////// WORDS
-        if(gameState == WORD_GAME) showVariables(word, wordsFound, palabraActual, scorePalabras, timeRemaining)
+        showVariables(word, wordsFound, palabraActual, scorePalabras, timeRemaining)
 
-        if(timeRemaining < 1 && gameState != END){
+        if(timeRemaining < 1){
             palabraActual = nuevaPalabra(misPalabras);
             scorePalabras -= 100;
             timeRemaining = TIEMPO_PALABRAS;
             word = "";
-        }
-        ///////////////        
+        }     
     }
-
 }
 
 function manageSign(){
@@ -764,13 +811,6 @@ function renderGroup(member) {
      game.debug.body(member);
 } */
 
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-// buscar por palabrasCode
-
 function mostrarImagenPalabra(palabra){
     if(gameState == WORD_GAME){
         imagenPalabra.destroy();
@@ -844,7 +884,7 @@ function showVariables(word, found, pActual, score, time){
     wordFoundText.fill = '#ffffff';
 
 
-    let foundTxt = game.add.text(wordFoundText.x, wordFoundText.y + 10, "found", {
+    foundTxt = game.add.text(wordFoundText.x, wordFoundText.y + 10, "found", {
         fontSize: '10pt',
         font: font_time
     });
@@ -868,7 +908,7 @@ function showVariables(word, found, pActual, score, time){
     timerTextPalabras.strokeThickness = 8;
     timerTextPalabras.fill = '#ffffff';
 
-    let timeTxt = game.add.text(timerTextPalabras.x, timerTextPalabras.y + 35, "time", {
+    timeTxt = game.add.text(timerTextPalabras.x, timerTextPalabras.y + 35, "time", {
         fontSize: '10pt',
         font: font_time
     });
@@ -889,7 +929,8 @@ function showVariables(word, found, pActual, score, time){
     scorePalabrasText.strokeThickness = 8;
     scorePalabrasText.fill = '#ffffff';
 
-    let scoreTxt = game.add.text(scorePalabrasText.x, scorePalabrasText.y + 35, "score", {
+
+    scoreTxt = game.add.text(scorePalabrasText.x, scorePalabrasText.y + 35, "score", {
         fontSize: '10pt',
         font: font_time
     });
@@ -945,7 +986,7 @@ function keyPress(char){
             timeRemaining = TIEMPO_PALABRAS;
 
             //comprobamos si hemos encontrado todas las palabras
-            if (wordsFound == misPalabras.length) endPalabras();
+            if (wordsFound == 1) endPalabras(); //if (wordsFound == misPalabras.length) endPalabras(); Test
             else palabraActual = nuevaPalabra(misPalabras);
         }
     }
@@ -953,8 +994,18 @@ function keyPress(char){
 
 function endPalabras(){
     //console.log("El juego ha acabado.")
-    gameState = END;
-    endGame();
+    rectBGwords.destroy();
+    imagenPalabra.destroy();
+    scorePalabrasText.destroy();
+    wordFoundText.destroy();
+    wordText.destroy();
+    timerTextPalabras.destroy();
+    foundTxt.destroy();
+    timeTxt.destroy();
+    scoreTxt.destroy();
+
+    game.physics.arcade.enable(fallingNut);
+    gameState = NUT_CATCHER;
 }
 
 function addSpaces(palabra, palabraCompleta){
@@ -972,4 +1023,13 @@ function updateCounter() {
     if(timeRemaining > 0 && gameState == WORD_GAME){
         timeRemaining--;
     }
+}
+
+function endNutCatcher(){
+    gameState = END;
+    endGame();
+}
+
+function nutCaught(){
+    fallingNut.y = -50;
 }
