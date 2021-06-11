@@ -3,3 +3,13 @@ canvas {
     margin: auto;
     margin-top: 2em;
 }
+
+@font-face{
+    font-family: 'orange_juice';
+    src: url('../assets/fonts/orange juice 2.0.ttf');
+}
+
+@font-face{
+    font-family: 'alone_on_earth';
+    src: url('../assets/fonts/CFAloneontheEarthDEMO-Regul.ttf');
+}

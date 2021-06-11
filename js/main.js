@@ -7,12 +7,12 @@ let wfConfig = {
     },
 
     google: {
-        families: ['Rammetto One', 'Sniglet']
+        families: ['Sniglet']
     },
 
     custom: {
-        families: ['FerrumExtracondensed'],
-        urls: ["https://fontlibrary.org/face/ferrum"]
+        families: ['orange_juice', 'alone_on_earth'],
+        urls: ['../assets/fonts/orange juice 2.0.ttf', '../assets/fonts/CFAloneontheEarthDEMO-Regul.ttf']
     }
 };
 

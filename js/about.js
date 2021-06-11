@@ -1,6 +1,6 @@
-const game_name = 'game name';
-const font_instructions = 'Sniglet';
-const font_title = 'Rammetto One';
+const game_name = 'nut catcher';
+const font_instructions = 'bold alone_on_earth';
+const font_title = 'orange_juice';
 
 let aboutState = {
     preload: loadAboutAssets,
@@ -27,27 +27,27 @@ function showInstructions(){
     let textTitle = game_name;
     let styleTitle = {
         font: font_title,
-        fontSize: '20pt',
-        fill: '#000000'
+        fontSize: '60pt',
+        fill: '#521b00',
     };
 
-    let title = game.add.text(STAGE_WIDTH/2, 50, textTitle, styleTitle);
+    let title = game.add.text(STAGE_WIDTH/2, 80, textTitle, styleTitle);
     title.anchor.setTo(0.5, 0.5);
 
     // Add the instructions
-    let instructions = 'insert instrucionsinsert instrucionsinsert instrucionsinsert instrucionsinsert instrucions';
-    instructions += 'insert instrucionsinsert instrucionsinsert instrucionsinsert instrucionsinsert instrucions';
-    instructions += 'insert instrucionsinsert instrucionsinsert instrucionsinsert instrucionsinsert instrucions';
-    instructions += 'insert instrucionsinsert instrucionsinsert instrucionsinsert instrucionsinsert instrucions';
+    let instructions = 'Control the squirrel with the arrow keys.';
+    instructions += '\nHelp the squirrel through its way home.';
+    instructions += '\nYou have to jump over branches, try not to get eaten by predators';
+    instructions += ', guess different types of nuts and finally collect all the nuts you can!';
 
     let instrucText = game.add.text(0, 0, instructions, {
         font: font_instructions,
-        fontSize: '15pt',
-        fill: '#000000'
+        fontSize: '20pt',
+        fill: '#240c00'
     });
 
     //instrucText.anchor.setTo(0.5, 0.5);
-    instrucText.setTextBounds(30, 150, STAGE_WIDTH - 50);
+    instrucText.setTextBounds(30, 230, STAGE_WIDTH - 50);
     instrucText.boundsAlignH = 'center';
     instrucText.boundsAlignV = 'middle';
     instrucText.wordWrap = true;
