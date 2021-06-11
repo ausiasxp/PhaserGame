@@ -107,12 +107,8 @@ var imagenPalabra;
 
 var entraJuegoPalabras = true; //esta variable mira si es la primera vez que entramos al juego palabras
 
-<<<<<<< HEAD
 let wrongSF, correctSF;
 let rectBGwords;
-=======
-/////////////////////////
->>>>>>> parent of f405ffc (timeRemaining cambiado por constante (mejor testeo))
 
 let playState = {
     preload: loadPlayAssets,
@@ -265,7 +261,7 @@ function createPlay(){
     for (i in misPalabras) misPalabras[i] = [misPalabras[i], false];
 
     palabraActual = nuevaPalabra(misPalabras);
-    //////////////////////////
+
     wordsFound = 0;
     scorePalabras = 0;
 
@@ -667,7 +663,7 @@ function updatePlay(){
         if(timeRemaining < 1 && gameState != END){
             palabraActual = nuevaPalabra(misPalabras);
             scorePalabras -= 100;
-            timeRemaining = 10;
+            timeRemaining = TIEMPO_PALABRAS;
             word = "";
         }
         ///////////////        
@@ -925,26 +921,26 @@ function keyPress(char){
             wordFound = palabraIgual(word, palabraActual)
             if (wordFound){
                 wordsFound += 1;
-                if(timeRemaining >= 5){
-                    scorePalabras += 100;
+                if(timeRemaining >= TIEMPO_PALABRAS/2){
+
+                    //score si la palabra es bien y tiempo es fast
+                    scorePalabras += 200;
                 }
                 else if(timeRemaining > 0){
-                    scorePalabras += 50;
+
+                    //score si la palabra es bien y tiempo es slow
+                    scorePalabras += 150;
                 }
                 misPalabras[indicePalabra][1] = true;
                 correctSF.play();
             }
-<<<<<<< HEAD
             //score si la palabra es mal
             else {
                 wrongSF.play();
                 scorePalabras -= 100;
             }
-=======
-            else scorePalabras -= 100;
->>>>>>> parent of f405ffc (timeRemaining cambiado por constante (mejor testeo))
             word = "";
-            timeRemaining = 10;
+            timeRemaining = TIEMPO_PALABRAS;
 
             //comprobamos si hemos encontrado todas las palabras
             if (wordsFound == misPalabras.length) endPalabras();
