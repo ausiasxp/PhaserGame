@@ -21,70 +21,38 @@ function createEnd(){
     rect.anchor.setTo(0.5, 0);
     rect.alpha = 0.8;
     rect.width = STAGE_WIDTH - 30;
-    rect.height = STAGE_HEIGHT - 70;
-
-    // text
-    let subtitlesTxt = 'Total time:\n\nRemaining jumps:\nRemaining energy:\nWords score:\nTotal score:';
-    let subtitles = game.add.text(STAGE_WIDTH/4, STAGE_HEIGHT*0.2, subtitlesTxt, {
-        fontSize: '20pt',
-        font: font_time
-    });
-    subtitles.anchor.setTo(0, 0);
-    subtitles.stroke = '#000000';
-    subtitles.strokeThickness = 8;
-    subtitles.fill = '#ffffff';
-    subtitles.smoothed = false;
+    rect.height = STAGE_HEIGHT - 130;
 
     // Total time elapsed
     let time_text = String(Math.trunc(total_time / 60)).padStart(2, "0") + ':'
     + String(total_time % 60).padStart(2, "0");
-    let time = game.add.text(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.2, time_text, {
+    let time = game.add.text(STAGE_WIDTH/2, STAGE_HEIGHT/2 - 50, time_text, {
         fontSize: '20pt',
         font: font_time
     });
-    time.anchor.setTo(1, 0);
+    time.anchor.setTo(0.5, 0.5);
     time.stroke = '#000000';
     time.strokeThickness = 8;
     time.fill = '#ffffff';
     time.smoothed = false;
 
     // remaining jumps from zone A
-    let jumps = game.add.image(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.3, 'jumpsSS', currentJump);
-    jumps.anchor.setTo(1, 0);
+    let jumps = game.add.image(STAGE_WIDTH/2, STAGE_HEIGHT*0.3, 'jumpsSS', currentJump);
+    jumps.anchor.setTo(0.5, 0.5);
 
     // remaining energy from zone B
-    let energy = game.add.image(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.4, 'energySS', EnergyValue);
-    energy.anchor.setTo(1, 0);
+    let energy = game.add.image(STAGE_WIDTH/2, STAGE_HEIGHT*0.5, 'energySS', EnergyValue);
+    energy.anchor.setTo(0.5, 0.5);
 
-    // score from zone C
-    let wordScore = game.add.text(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.5, scorePalabras, {
-        fontSize: '20pt',
-        font: font_time
-    });
-    wordScore.anchor.setTo(1, 0);
-    wordScore.stroke = '#000000';
-    wordScore.strokeThickness = 8;
-    wordScore.fill = '#ffffff';
-    wordScore.smoothed = false;
-
-    // Total score
-    let totalScore = EnergyValue + currentJump + scorePalabras;
-    let totalScoreTxt = game.add.text(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.6, totalScore, {
-        fontSize: '20pt',
-        font: font_time
-    });
-    totalScoreTxt.anchor.setTo(1, 0);
-    totalScoreTxt.stroke = '#000000';
-    totalScoreTxt.strokeThickness = 8;
-    totalScoreTxt.fill = '#ffffff';
-    totalScoreTxt.smoothed = false;
+    // remaining time from zone C
+    
 
     // home button
-    let homeBtn = game.add.button(STAGE_WIDTH/4, STAGE_HEIGHT*0.8, 'homeBtn', returnHome);
+    let homeBtn = game.add.button(STAGE_WIDTH/4, STAGE_HEIGHT*0.7, 'homeBtn', returnHome);
     homeBtn.anchor.setTo(0.5, 0.5);
 
     // Replay button
-    let replayBtn = game.add.button(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.8, 'replayBtn', replay);
+    let replayBtn = game.add.button(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.7, 'replayBtn', replay);
     replayBtn.anchor.setTo(0.5, 0.5);
 
     // Reset variables fro next games
@@ -92,7 +60,7 @@ function createEnd(){
     total_time = 0;
     currentJump = MAX_JUMPS;
     EnergyValue = MAX_ENERGY;
-    squirrel_initial_x = GLOBAL_INITAL_X;
+    squirrel_initial_x = 32;
     squirrel_initial_y = WORLD_HEIGHT - 150;
 }
 

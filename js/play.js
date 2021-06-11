@@ -1,6 +1,5 @@
 // PENDIENTE
 // Estética zona c
-// transiciones
 // plataformas movible
 // Nivel optativo
 // Terminar pantalla final
@@ -13,7 +12,6 @@ const JUMP = 600;
 const SQUIRREL_VELOCITY = 300;
 const font_sign = 'Sniglet';
 const font_time = 'sniglet';
-const GLOBAL_INITAL_X = 9300;
 
 //game states
 const PLATFORMER = 0;
@@ -59,7 +57,7 @@ let toRight = false;
 let cursors, spacebarKey;
 let soundMusic;
 let music = false;
-let squirrel_initial_x = GLOBAL_INITAL_X; 
+let squirrel_initial_x = 9000; 
 let squirrel_initial_y = WORLD_HEIGHT - 150;
 let total_time = 0, total_timeHUD, total_time_clock;
 
@@ -80,7 +78,6 @@ let currentEagleProbability, currentEagleVelocity;
 let foxes, foxCall;
 let energyHUD;
 let gameOverImg, replayButton;
-let cry;
 
 
 ///////////////////// WORDS
@@ -92,7 +89,7 @@ let word = ""; //variable que acumula la palabra que pone el jugador
 let wordText;
 
 let palabraActual;
-//let palabraActualText;
+let palabraActualText;
 let indicePalabra;
 
 let charText;
@@ -108,7 +105,6 @@ var imagenPalabra;
 var entraJuegoPalabras = true; //esta variable mira si es la primera vez que entramos al juego palabras
 
 let wrongSF, correctSF;
-let rectBGwords;
 
 let playState = {
     preload: loadPlayAssets,
@@ -139,7 +135,6 @@ function loadPlayAssets(){
     game.load.spritesheet('jumpsHUD', 'assets/images/jumpsUI.png', 96, 64);
 
     loadPlayAssetsAvoidEnemies();
-    game.load.audio('cry', 'assets/sounds/cry.mp3');
 
     ///////////// WORDS
     //["cashew", "almond", "hazelnut", "peanut", "pistachio", "pumpkinseed", "sunflowerseed", "walnut"]
@@ -181,7 +176,7 @@ function createPlay(){
    // Squirrel
     setSquirrel(); 
     // Camera follows the player inside the world
-    game.camera.follow(squirrel,Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
+    game.camera.follow(squirrel);
 
     createPlayAvoidEnemies();
 
@@ -191,7 +186,6 @@ function createPlay(){
     soundMusic = game.add.audio('music');
     soundJump = game.add.audio('jump');
     foxCall = game.add.audio('foxCall');
-    cry = game.add.audio('cry');
     
     // Remaining jumps HUD
     let allX = 50;
@@ -220,7 +214,7 @@ function createPlay(){
 
     wordText = game.add.text(30, 30, "", {fill:'#000000'});
     wordFoundText = game.add.text(30, 60, "", {fill:'#000000'});
-    //palabraActualText = game.add.text(30, 90, "", {fill:'#000000'});
+    palabraActualText = game.add.text(30, 90, "", {fill:'#000000'});
     charText = game.add.text(30, 150, "", {fill:'#000000'})
     charText.fixedToCamera = true;
 
@@ -242,16 +236,8 @@ function createPlay(){
     //Minijuego palabras
     game.input.keyboard.addCallbacks(this, keyPress, null, null); //pillamos input de teclado para llamar a keyPress
 
-    // Background 
-    rectBGwords = game.add.image(100, 30, 'signTextBg');
-    rectBGwords.alpha = 0.8;
-    rectBGwords.fixedToCamera = true;
-    rectBGwords.width = STAGE_WIDTH - 130;
-    rectBGwords.height = STAGE_HEIGHT - 140;
-    rectBGwords.visible = false;
-
     // Initialize first 
-    imagenPalabra = game.add.sprite(rectBGwords.x + rectBGwords.width/2, rectBGwords.y + rectBGwords.height/2, "almond");
+    imagenPalabra = game.add.sprite(0, STAGE_HEIGHT*2, "almond");
     mostrarImagenPalabra("almond");
 
     //Inicializamos la lista de palabras y la palabra actual
@@ -267,7 +253,6 @@ function createPlay(){
 
     wrongSF = game.add.audio('wrong');
     correctSF = game.add.audio('correct');
-    
 }
 
 function createBG(){
@@ -586,7 +571,6 @@ function updatePlay(){
             palabraActual = nuevaPalabra(misPalabras);
             scorePalabras = 0;
             entraJuegoPalabras = false;
-            rectBGwords.visible = true;
         }
     }
 
@@ -705,23 +689,16 @@ function eaglesMovement(eagle){
 }
 
 function enemyHitsSquirrel(squirrel, enemy){
-
-    cry.play();
     EnergyValue = Math.max(0, EnergyValue - 1);
     energyHUD.frame = EnergyValue;
     squirrel.body.x += enemy.width + 10;
 
-
-    if (EnergyValue === 0){
-        game.camera.fade(0xff0000, 500);
-        game.camera.onFadeComplete.add(gameOver, this);
-    } else {
-        game.camera.flash(0xff0000, 500);
+    if (EnergyValue == 0){
+        gameOver();
     }
 }
 
 function gameOver(){
-    game.camera.resetFX();
     game.paused = true;
     gameOverImg = game.add.image(game.camera.centerX, game.camera.centerY - 80, 'gameOver');
     gameOverImg.anchor.setTo(0.5, 0.5);
@@ -772,9 +749,8 @@ function renderGroup(member) {
 function mostrarImagenPalabra(palabra){
     if(gameState == WORD_GAME){
         imagenPalabra.destroy();
-        console.log(rectBGwords.x);
-        imagenPalabra = game.add.sprite(rectBGwords.x + rectBGwords.width/2, rectBGwords.y + rectBGwords.height/2, palabra);
-        //imagenPalabra.fixedToCamera = true;
+        imagenPalabra = game.add.sprite(STAGE_WIDTH/2, STAGE_HEIGHT/2, palabra);
+        imagenPalabra.fixedToCamera = true;
         imagenPalabra.anchor.setTo(0.5, 0.5);
         //imagenPalabra.width = 100;
         //imagenPalabra.height = 100; 
@@ -821,82 +797,19 @@ function showVariables(word, found, pActual, score, time){
 
     timerTextPalabras.destroy();
 
-    wordText = game.add.text(rectBGwords.x + rectBGwords.width/2, 150 + rectBGwords.y + rectBGwords.height/2, addSpaces(word, pActual), {
-        fontSize: '20pt',
-        font: font_time
-    });
-    //wordText.fixedToCamera = true;
-    wordText.anchor.setTo(0.5, 0.5);
-    wordText.stroke = '#000000';
-    wordText.strokeThickness = 8;
-    wordText.fill = '#ffffff';
-
-    wordFoundText = game.add.text(150, 70, found, {
-        fontSize: '20pt',
-        font: font_time
-    });
+    wordText = game.add.text(30, 30, "Tu palabra: " + addSpaces(word, pActual), {fill:'#000000'});
+    wordText.fixedToCamera = true;
+    wordFoundText = game.add.text(30, 60, "Encontrada: " + found, {fill:'#000000'});
     wordFoundText.fixedToCamera = true;
-    wordFoundText.anchor.setTo(0.5, 0.5);
-    wordFoundText.stroke = '#000000';
-    wordFoundText.strokeThickness = 8;
-    wordFoundText.fill = '#ffffff';
-
-
-    let foundTxt = game.add.text(wordFoundText.x, wordFoundText.y + 10, "found", {
-        fontSize: '10pt',
-        font: font_time
-    });
-    foundTxt.fixedToCamera = true;
-    foundTxt.anchor.setTo(0.5, 0);
-    foundTxt.stroke = '#000000';
-    foundTxt.strokeThickness = 3;
-    foundTxt.fill = '#ffffff';
-
     //palabraActualText = game.add.text(30, 90, "Palabra actual: " + pActual, {fill:'#000000'});
     //palabraActualText.fixedToCamera = true;
     // We don't want to show the answer
     
-    timerTextPalabras = game.add.text(STAGE_WIDTH - 70, 50, String(time).padStart(2, "0"), {
-        fontSize: '20pt',
-        font: font_time
-    });
+    timerTextPalabras = game.add.text(550, 20, "timerPalabras: " + String(time).padStart(2, "0"), {fill:'#000000'});
     timerTextPalabras.fixedToCamera = true;
-    timerTextPalabras.anchor.setTo(0.5, 0);
-    timerTextPalabras.stroke = '#000000';
-    timerTextPalabras.strokeThickness = 8;
-    timerTextPalabras.fill = '#ffffff';
 
-    let timeTxt = game.add.text(timerTextPalabras.x, timerTextPalabras.y + 35, "time", {
-        fontSize: '10pt',
-        font: font_time
-    });
-    timeTxt.fixedToCamera = true;
-    timeTxt.anchor.setTo(0.5, 0);
-    timeTxt.stroke = '#000000';
-    timeTxt.strokeThickness = 3;
-    timeTxt.fill = '#ffffff';
-
-
-    scorePalabrasText = game.add.text(STAGE_WIDTH/2, 50, score, {
-        fontSize: '20pt',
-        font: font_time
-    });
+    scorePalabrasText = game.add.text(550, 50, "score: " + score, {fill:'#000000'});
     scorePalabrasText.fixedToCamera = true;
-    scorePalabrasText.anchor.setTo(0.5, 0);
-    scorePalabrasText.stroke = '#000000';
-    scorePalabrasText.strokeThickness = 8;
-    scorePalabrasText.fill = '#ffffff';
-
-    let scoreTxt = game.add.text(scorePalabrasText.x, scorePalabrasText.y + 35, "score", {
-        fontSize: '10pt',
-        font: font_time
-    });
-    scoreTxt.fixedToCamera = true;
-    scoreTxt.anchor.setTo(0.5, 0);
-    scoreTxt.stroke = '#000000';
-    scoreTxt.strokeThickness = 3;
-    scoreTxt.fill = '#ffffff';
-
 }
 
 //si hay una presion de tecla hace lo de la funcion
