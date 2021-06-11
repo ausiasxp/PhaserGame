@@ -1,12 +1,11 @@
 // PENDIENTE
 // transiciones
 // plataformas movible
-// Nivel optativoçç
+// Nivel optativo
 // Hacer que las ardillas dejen de spawnear antes de lo de las palabras: hay un bug que si te pegan y entras
 //   en el juego de las palabras la imagen no está centrada
 // Hacer que se quite la interfaz de plataformeo durante el juego de las palabras
 // Quitar test
-// Quitar texto restante despues de acabar juego de palabras
 
 
 // GLOBAL
@@ -17,7 +16,7 @@ const JUMP = 600;
 const SQUIRREL_VELOCITY = 300;
 const font_sign = 'Sniglet';
 const font_time = 'sniglet';
-const GLOBAL_INITAL_X = 9300;
+const GLOBAL_INITAL_X = 9000;
 
 //game states
 const PLATFORMER = 0;
@@ -285,6 +284,39 @@ function createPlay(){
 
     wrongSF = game.add.audio('wrong');
     correctSF = game.add.audio('correct');
+
+    foundTxt = game.add.text(wordFoundText.x, wordFoundText.y + 10, "found", {
+        fontSize: '10pt',
+        font: font_time
+    });
+    foundTxt.fixedToCamera = true;
+    foundTxt.anchor.setTo(0.5, 0);
+    foundTxt.stroke = '#000000';
+    foundTxt.strokeThickness = 3;
+    foundTxt.fill = '#ffffff';
+    foundTxt.visible = false;
+
+    timeTxt = game.add.text(timerTextPalabras.x, timerTextPalabras.y + 35, "time", {
+        fontSize: '10pt',
+        font: font_time
+    });
+    timeTxt.fixedToCamera = true;
+    timeTxt.anchor.setTo(0.5, 0);
+    timeTxt.stroke = '#000000';
+    timeTxt.strokeThickness = 3;
+    timeTxt.fill = '#ffffff';
+    timeTxt.visible = false;
+
+    scoreTxt = game.add.text(scorePalabrasText.x, scorePalabrasText.y + 35, "score", {
+        fontSize: '10pt',
+        font: font_time
+    });
+    scoreTxt.fixedToCamera = true;
+    scoreTxt.anchor.setTo(0.5, 0);
+    scoreTxt.stroke = '#000000';
+    scoreTxt.strokeThickness = 3;
+    scoreTxt.fill = '#ffffff';
+    scoreTxt.visible = false;
 
 
     /////////// NUT_CATCHER
@@ -597,23 +629,26 @@ function updatePlay(){
 
 
     // Check if squirrel has passed to the next part
-    if(squirrel.x > LEVEL_X_ORIGIN && gameState == PLATFORMER){
+    if(squirrel.x > LEVEL_X_ORIGIN && gameState === PLATFORMER){
         gameState = AVOID_ENEMIES;
         squirrel_initial_x = LEVEL_X_ORIGIN + 32;
         squirrel_initial_y = WORLD_HEIGHT - 500;
         game.camera.deadzone = new Phaser.Rectangle(300, 0, 200, 500);
     }
     
-    if (squirrel.x > LEVEL_X_ORIGIN + 5300 && gameState == AVOID_ENEMIES){
+    else if (squirrel.x > LEVEL_X_ORIGIN + 5300 && gameState === AVOID_ENEMIES){
         gameState = WORD_GAME;
         console.log(gameState);
         console.log(wordsFound);
         palabraActual = nuevaPalabra(misPalabras);
         scorePalabras = 0;
         rectBGwords.visible = true;
+        foundTxt.visible = true;
+        timeTxt.visible = true;
+        scoreTxt.visible = true;
     }
 
-    if(squirrel.x > LEVEL_X_ORIGIN + 5000 && gameState == NUT_CATCHER){
+    if(squirrel.x > LEVEL_X_ORIGIN + 5000 && gameState === NUT_CATCHER){
         game.camera.deadzone = new Phaser.Rectangle(0, 0, 0, 0);
     }
 
@@ -628,7 +663,7 @@ function updatePlay(){
         //  Reset the players velocity (movement)
         squirrel.body.velocity.x = 0;
 
-        if ((cursors.left.isDown && squirrel.x > LEVEL_X_ORIGIN + 4600 && gameState != NUT_CATCHER)
+        if ((cursors.left.isDown && squirrel.x < LEVEL_X_ORIGIN + 4600 && gameState != NUT_CATCHER)
             || (cursors.left.isDown && squirrel.x > LEVEL_X_ORIGIN + 5370 && gameState == NUT_CATCHER)) {
             //  Move to the left, but don't allow to go back at some points
             squirrel.body.velocity.x = -SQUIRREL_VELOCITY;
@@ -881,17 +916,6 @@ function showVariables(word, found, pActual, score, time){
     wordFoundText.strokeThickness = 8;
     wordFoundText.fill = '#ffffff';
 
-
-    foundTxt = game.add.text(wordFoundText.x, wordFoundText.y + 10, "found", {
-        fontSize: '10pt',
-        font: font_time
-    });
-    foundTxt.fixedToCamera = true;
-    foundTxt.anchor.setTo(0.5, 0);
-    foundTxt.stroke = '#000000';
-    foundTxt.strokeThickness = 3;
-    foundTxt.fill = '#ffffff';
-
     //palabraActualText = game.add.text(30, 90, "Palabra actual: " + pActual, {fill:'#000000'});
     //palabraActualText.fixedToCamera = true;
     // We don't want to show the answer
@@ -906,16 +930,6 @@ function showVariables(word, found, pActual, score, time){
     timerTextPalabras.strokeThickness = 8;
     timerTextPalabras.fill = '#ffffff';
 
-    timeTxt = game.add.text(timerTextPalabras.x, timerTextPalabras.y + 35, "time", {
-        fontSize: '10pt',
-        font: font_time
-    });
-    timeTxt.fixedToCamera = true;
-    timeTxt.anchor.setTo(0.5, 0);
-    timeTxt.stroke = '#000000';
-    timeTxt.strokeThickness = 3;
-    timeTxt.fill = '#ffffff';
-
 
     scorePalabrasText = game.add.text(STAGE_WIDTH/2, 50, score, {
         fontSize: '20pt',
@@ -926,17 +940,6 @@ function showVariables(word, found, pActual, score, time){
     scorePalabrasText.stroke = '#000000';
     scorePalabrasText.strokeThickness = 8;
     scorePalabrasText.fill = '#ffffff';
-
-
-    scoreTxt = game.add.text(scorePalabrasText.x, scorePalabrasText.y + 35, "score", {
-        fontSize: '10pt',
-        font: font_time
-    });
-    scoreTxt.fixedToCamera = true;
-    scoreTxt.anchor.setTo(0.5, 0);
-    scoreTxt.stroke = '#000000';
-    scoreTxt.strokeThickness = 3;
-    scoreTxt.fill = '#ffffff';
 
 }
 
