@@ -1,7 +1,9 @@
 // PENDIENTE
+// Estética zona c
 // transiciones
 // plataformas movible
 // Nivel optativo
+// Terminar pantalla final
 
 // GLOBAL
 const WORLD_WIDTH = 10000;
@@ -559,8 +561,8 @@ function setPlatformsInfront(){
 function updatePlay(){
     // Manage background music
      if (!music){
-        soundMusic.play();
-        soundMusic.loop = true;
+        //soundMusic.play();
+        //soundMusic.loop = true;
         music = true;
     }
 
@@ -621,7 +623,7 @@ function updatePlay(){
                 squirrel.body.velocity.y = -JUMP;
                 squirrel.animations.stop();
                 squirrel.frame = 1;
-                soundJump.play();
+                //soundJump.play();
                 //The current jumps decreases by 1 if the player jumps
                 currentJump = currentJump - 1;
                 jumpsHUD.frame = currentJump;
@@ -640,7 +642,7 @@ function updatePlay(){
                 squirrel.body.velocity.y = -JUMP;
                 squirrel.animations.stop();
                 squirrel.frame = 1;
-                soundJump.play(); 
+                //soundJump.play(); 
             }  
             // Move eagles and foxes
             eagles.forEachAlive(eaglesMovement, this);
