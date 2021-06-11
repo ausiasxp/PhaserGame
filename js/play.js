@@ -1,5 +1,5 @@
 // PENDIENTE
-// Parallax
+// Estética zona c
 // plataformas movible
 // Nivel optativo
 // Terminar pantalla final
@@ -44,6 +44,9 @@ const FOXES_VELOCITY_Y = 800;
 
 const PLAYER_COLLIDE_OFFSET_X = 200;
 
+// WORD GAME
+const TIEMPO_PALABRAS = 20;
+
 
 // GLOBAL 
 let gameState = 0;  // Start at platformer
@@ -54,7 +57,7 @@ let toRight = false;
 let cursors, spacebarKey;
 let soundMusic;
 let music = false;
-let squirrel_initial_x = 32; 
+let squirrel_initial_x = 9000; 
 let squirrel_initial_y = WORLD_HEIGHT - 150;
 let total_time = 0, total_timeHUD, total_time_clock;
 
@@ -77,7 +80,7 @@ let energyHUD;
 let gameOverImg, replayButton;
 
 
-///////////////////// VarsP
+///////////////////// WORDS
 let wordFound = false; //variable que dice si hemos encontrado las palabras o no
 let wordsFound = 0;
 let wordFoundText;
@@ -101,9 +104,7 @@ var imagenPalabra;
 
 var entraJuegoPalabras = true; //esta variable mira si es la primera vez que entramos al juego palabras
 
-const TIEMPO_PALABRAS = 20;
-
-/////////////////////////
+let wrongSF, correctSF;
 
 let playState = {
     preload: loadPlayAssets,
@@ -145,6 +146,9 @@ function loadPlayAssets(){
     game.load.image('pumpkin seed', 'assets/images/pumpkin_seeds.png');
     game.load.image('sunflower seed', 'assets/images/sunflower_seeds.png');
     game.load.image('walnut', 'assets/images/walnut.png');
+
+    game.load.audio('wrong', 'assets/sounds/wrong.mp3');
+    game.load.audio('correct', 'assets/sounds/correct.mp3');
     /////////////
 }
 
@@ -206,7 +210,7 @@ function createPlay(){
     total_timeHUD.strokeThickness = 8;
     total_timeHUD.fill = '#ffffff';
 
-    ////////////////////////// CreateP
+    ////////////////////////// WORDS
 
     wordText = game.add.text(30, 30, "", {fill:'#000000'});
     wordFoundText = game.add.text(30, 60, "", {fill:'#000000'});
@@ -232,7 +236,7 @@ function createPlay(){
     //Minijuego palabras
     game.input.keyboard.addCallbacks(this, keyPress, null, null); //pillamos input de teclado para llamar a keyPress
 
-        // Initialize first 
+    // Initialize first 
     imagenPalabra = game.add.sprite(0, STAGE_HEIGHT*2, "almond");
     mostrarImagenPalabra("almond");
 
@@ -241,13 +245,14 @@ function createPlay(){
     
     //false es que aún no ha sido encontrada, true es que ha sido encontrada
     for (i in misPalabras) misPalabras[i] = [misPalabras[i], false];
-    console.log(misPalabras);
-    console.log(misPalabras.length);
 
     palabraActual = nuevaPalabra(misPalabras);
 
     wordsFound = 0;
     scorePalabras = 0;
+
+    wrongSF = game.add.audio('wrong');
+    correctSF = game.add.audio('correct');
 }
 
 function createBG(){
@@ -559,7 +564,7 @@ function updatePlay(){
         game.camera.deadzone = new Phaser.Rectangle(300, 0, 200, 500);
     }
     
-    if (squirrel.x > LEVEL_X_ORIGIN + 5500){
+    if (squirrel.x > LEVEL_X_ORIGIN + 5300){
         gameState = WORD_GAME;
 
         if(entraJuegoPalabras){
@@ -632,11 +637,11 @@ function updatePlay(){
     }
 
     else{
-        //  Reset the players velocity (movement)
+        //  Reset the players velocity (movement) 
         squirrel.body.velocity.x = 0;
         squirrel.frame = toRight? 7 : 6;
 
-        /////////////// UpdateP
+        /////////////// WORDS
         if(gameState == WORD_GAME) showVariables(word, wordsFound, palabraActual, scorePalabras, timeRemaining)
 
         if(timeRemaining < 1 && gameState != END){
@@ -746,8 +751,9 @@ function mostrarImagenPalabra(palabra){
         imagenPalabra.destroy();
         imagenPalabra = game.add.sprite(STAGE_WIDTH/2, STAGE_HEIGHT/2, palabra);
         imagenPalabra.fixedToCamera = true;
-        imagenPalabra.width = 100;
-        imagenPalabra.height = 100; 
+        imagenPalabra.anchor.setTo(0.5, 0.5);
+        //imagenPalabra.width = 100;
+        //imagenPalabra.height = 100; 
     }   
 }
 
@@ -758,7 +764,7 @@ function nuevaPalabra(palabras){
     //pillamos indice aleatorio entre 0 y el largo del array
     let randomIndex = getRandomInt(1, palabras.length) - 1
 
-    console.log("Estoy buscando una palabra.")
+    //console.log("Estoy buscando una palabra.")
     //buscamos indice cuya palabra asociada no haya sido encontrada
     while (palabras[randomIndex][1]){
         randomIndex = getRandomInt(1, palabras.length) - 1
@@ -766,10 +772,10 @@ function nuevaPalabra(palabras){
 
     mostrarImagenPalabra(palabras[randomIndex][0]);
 
-    console.log(palabras);
+    //console.log(palabras);
 
     indicePalabra = randomIndex;
-    console.log(indicePalabra)
+    //console.log(indicePalabra)
 
     return palabras[indicePalabra][0];
 }
@@ -785,7 +791,7 @@ function getRandomInt(min, max) {
 function showVariables(word, found, pActual, score, time){
     wordText.destroy();
     wordFoundText.destroy();
-    palabraActualText.destroy();
+    //palabraActualText.destroy();
 
     scorePalabrasText.destroy();
 
@@ -795,10 +801,11 @@ function showVariables(word, found, pActual, score, time){
     wordText.fixedToCamera = true;
     wordFoundText = game.add.text(30, 60, "Encontrada: " + found, {fill:'#000000'});
     wordFoundText.fixedToCamera = true;
-    palabraActualText = game.add.text(30, 90, "Palabra actual: " + pActual, {fill:'#000000'});
-    palabraActualText.fixedToCamera = true;
+    //palabraActualText = game.add.text(30, 90, "Palabra actual: " + pActual, {fill:'#000000'});
+    //palabraActualText.fixedToCamera = true;
+    // We don't want to show the answer
     
-    timerTextPalabras = game.add.text(550, 20, "timerPalabras: " + time, {fill:'#000000'});
+    timerTextPalabras = game.add.text(550, 20, "timerPalabras: " + String(time).padStart(2, "0"), {fill:'#000000'});
     timerTextPalabras.fixedToCamera = true;
 
     scorePalabrasText = game.add.text(550, 50, "score: " + score, {fill:'#000000'});
@@ -809,11 +816,11 @@ function showVariables(word, found, pActual, score, time){
 function keyPress(char){
 
     if(gameState == WORD_GAME){
-        charText.destroy();
-        charText = game.add.text(30, 120, "char: " + char.key, {fill:'#000000'});
-        charText.fixedToCamera = true;
+        //charText.destroy();
+        //charText = game.add.text(30, 120, "char: " + char.key, {fill:'#000000'});
+        //charText.fixedToCamera = true;
 
-        console.log("Codigo: " + char.keyCode)
+        //console.log("Codigo: " + char.keyCode)
         //mientras que lo que escribe el jugador sea mas pequeño que la palabra dada va escibiendo
         if (word.length != palabraActual.length && char.keyCode != 13){ //enter no pulsado
             if (word.length < palabraActual.length && ((char.keyCode >= 65 && char.keyCode <= 90) || char.keyCode == 32)){
@@ -838,9 +845,13 @@ function keyPress(char){
                     scorePalabras += 150;
                 }
                 misPalabras[indicePalabra][1] = true;
+                correctSF.play();
             }
             //score si la palabra es mal
-            else scorePalabras -= 100;
+            else {
+                wrongSF.play();
+                scorePalabras -= 100;
+            }
             word = "";
             timeRemaining = TIEMPO_PALABRAS;
 
@@ -852,7 +863,7 @@ function keyPress(char){
 }
 
 function endPalabras(){
-    console.log("El juego ha acabado.")
+    //console.log("El juego ha acabado.")
     gameState = END;
     endGame();
 }
