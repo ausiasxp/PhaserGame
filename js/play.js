@@ -52,6 +52,7 @@ const PLAYER_COLLIDE_OFFSET_X = 200;
 
 // WORD GAME
 const TIEMPO_PALABRAS = 40;
+const SPIDER_PROBABILITY = 0.7;
 
 
 // GLOBAL 
@@ -126,6 +127,7 @@ let firsNut;
 let scoreNut;
 let scoreNutHUD, nutHUD;
 let nutSnd;
+let fallingSpider;
 
 //////////////////////
 
@@ -179,6 +181,7 @@ function loadPlayAssets(){
     // NUT CATCHER
     game.load.image('nutHUD', 'assets/images/nutsHUD.png');
     game.load.audio('nutCatched', 'assets/sounds/nutCatched.wav');
+    game.load.spritesheet('spider', 'assets/images/Spider Sprite Sheet.png', 32, 32);
 }
 
 function createPlay(){
@@ -329,8 +332,10 @@ function createPlay(){
 
 
     /////////// NUT_CATCHER
-    fallingNut = game.add.sprite(0, WORLD_HEIGHT + 50, "star");
+    fallingNut = game.add.sprite(-10, WORLD_HEIGHT + 50, "star");
     fallingNut.scale.setTo(0.5);
+    fallingSpider = game.add.sprite(-10, WORLD_HEIGHT + 50, 'spider', 27);
+    fallingSpider.scale.setTo(3);
     firsNut = true;
     scoreNut = 0;
 
@@ -746,21 +751,38 @@ function updatePlay(){
 
             if(firsNut){
                 fallingNut.y = -50;
+                fallingSpider.y = -50;
                 firsNut = false;
             }
 
-            if(fallingNut.y < 0){
-                console.log("generando nut");
+            console.log('spider Y:', fallingSpider.y);
+            console.log('nut Y:', fallingNut.y);
+
+            if(fallingNut.y < 0 && fallingSpider.y < 0){
+                
                 console.log(fallingNut.x, fallingNut.y);
-                fallingNut.x = getRandomInt(LEVEL_X_ORIGIN + 5360, LEVEL_X_ORIGIN + 5360 + STAGE_WIDTH - fallingNut.width);
-                fallingNut.y = 50;
+                let ran = Math.random();
+                console.log('ran:',ran);
+                if(ran <= SPIDER_PROBABILITY){
+                    fallingSpider.x = getRandomInt(LEVEL_X_ORIGIN + 5360, LEVEL_X_ORIGIN + 5360 + STAGE_WIDTH - fallingSpider.width);
+                    fallingSpider.y = 50;
+                    fallingSpider.body.velocity.y = 300;
+                    console.log('genera araña');
+                } else {
+                    fallingNut.x = getRandomInt(LEVEL_X_ORIGIN + 5360, LEVEL_X_ORIGIN + 5360 + STAGE_WIDTH - fallingNut.width);
+                    fallingNut.y = 50;
+                    fallingNut.body.velocity.y = 300;   
+                    console.log("generando nut");                 
+                }
+
             }
 
-            fallingNut.body.velocity.y = 300;
 
-            game.physics.arcade.overlap(squirrel, fallingNut, nutCaught, null, this);
+            game.physics.arcade.overlap(squirrel, fallingNut, nutOrSpiderCaught, null, this);
+            game.physics.arcade.overlap(squirrel, fallingSpider, nutOrSpiderCaught, null, this);
 
             if(fallingNut.y > STAGE_HEIGHT + squirrel.y + fallingNut.height) fallingNut.y = -50;
+            if(fallingSpider.y > STAGE_HEIGHT + squirrel.y + fallingSpider.height) fallingSpider.y = -50;
         }
     }
     else {
@@ -1032,6 +1054,7 @@ function endPalabras(){
     scoreTxt.destroy();
 
     game.physics.arcade.enable(fallingNut);
+    game.physics.arcade.enable(fallingSpider);
     gameState = NUT_CATCHER;
 }
 
@@ -1057,13 +1080,22 @@ function endNutCatcher(){
     endGame();
 }
 
-function nutCaught(){
-    fallingNut.y = -50;
-    scoreNut += 1;
+function nutOrSpiderCaught(squirrel, object){
+    if(object === fallingNut){
+        fallingNut.y = -50;
+        scoreNut += 1;
+        nutSnd.play();        
+    } else if(object === fallingSpider){
+        fallingSpider.y = -50;
+        scoreNut = Math.max(scoreNut - 1, 0);
+        cry.play();
+        game.camera.flash(0xff0000, 500);
+    }
+
     scoreNutHUD.setText("x"+scoreNut);
-    nutSnd.play();
+    
 
     if(scoreNut > 5){   //temporal
-        endGame();
+        endNutCatcher();
     }
 }
