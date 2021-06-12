@@ -16,7 +16,7 @@ const JUMP = 600;
 const SQUIRREL_VELOCITY = 300;
 const font_sign = 'Sniglet';
 const font_time = 'sniglet';
-const GLOBAL_INITAL_X = 32;
+const GLOBAL_INITAL_X = 10000;
 
 //game states
 const PLATFORMER = 0;
@@ -123,6 +123,9 @@ let scoreTxt;
 let fallingNut;
 let generadorNut;
 let firsNut;
+let scoreNut;
+let scoreNutHUD, nutHUD;
+let nutSnd;
 
 //////////////////////
 
@@ -172,6 +175,10 @@ function loadPlayAssets(){
     game.load.audio('wrong', 'assets/sounds/wrong.mp3');
     game.load.audio('correct', 'assets/sounds/correct.mp3');
     /////////////
+
+    // NUT CATCHER
+    game.load.image('nutHUD', 'assets/images/nutsHUD.png');
+    game.load.audio('nutCatched', 'assets/sounds/nutCatched.wav');
 }
 
 function createPlay(){
@@ -205,10 +212,11 @@ function createPlay(){
     setPlatformsInfront();
 
     // Sounds
-    soundMusic = game.add.audio('music');
-    soundJump = game.add.audio('jump');
+    soundMusic = game.add.audio('music', 1, true);
+    soundJump = game.add.audio('jump', 0.6);
     foxCall = game.add.audio('foxCall');
     cry = game.add.audio('cry');
+    nutSnd = game.add.audio('nutCatched', 0.7);
     
     // Remaining jumps HUD
     let allX = 50;
@@ -321,11 +329,28 @@ function createPlay(){
 
 
     /////////// NUT_CATCHER
-    fallingNut = game.add.sprite(0, WORLD_HEIGHT + 50, "star")
+    fallingNut = game.add.sprite(0, WORLD_HEIGHT + 50, "star");
+    fallingNut.scale.setTo(0.5);
     firsNut = true;
+    scoreNut = 0;
 
     gameState = PLATFORMER;
-    
+
+    // HUD
+    nutHUD = game.add.image(allX, 250, 'nutHUD');
+    nutHUD.fixedToCamera = true;
+    nutHUD.scale.setTo(0.7);
+    nutHUD.anchor.setTo(0.5, 0.5);
+
+    scoreNutHUD = game.add.text(allX + 20, 270, "x" + scoreNut, {
+        fontSize: '20pt',
+        font: font_time
+    });
+    scoreNutHUD.anchor.setTo(0.5, 0.5);
+    scoreNutHUD.fixedToCamera = true;
+    scoreNutHUD.stroke = '#000000';
+    scoreNutHUD.strokeThickness = 8;
+    scoreNutHUD.fill = '#ffffff';    
 }
 
 function createBG(){
@@ -637,7 +662,7 @@ function updatePlay(){
         game.camera.deadzone = new Phaser.Rectangle(300, 0, 200, 500);
     }
     
-    else if (squirrel.x > LEVEL_X_ORIGIN + 5300 && gameState === AVOID_ENEMIES){
+    if (squirrel.x > LEVEL_X_ORIGIN + 5300 && gameState === AVOID_ENEMIES){
         gameState = WORD_GAME;
         console.log(gameState);
         console.log(wordsFound);
@@ -1034,4 +1059,11 @@ function endNutCatcher(){
 
 function nutCaught(){
     fallingNut.y = -50;
+    scoreNut += 1;
+    scoreNutHUD.setText("x"+scoreNut);
+    nutSnd.play();
+
+    if(scoreNut > 5){   //temporal
+        endGame();
+    }
 }

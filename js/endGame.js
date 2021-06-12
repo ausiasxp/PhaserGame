@@ -10,6 +10,7 @@ function loadEnd(){
     game.load.image('textBg', 'assets/images/rectangle_about.png');
     game.load.image('homeBtn', 'assets/images/button_home.png');
     game.load.image('replayBtn', 'assets/images/button_play-again.png');
+    game.load.image('nutHUD', 'assets/images/nutsHUD.png');
 }
 
 function createEnd(){
@@ -24,8 +25,8 @@ function createEnd(){
     rect.height = STAGE_HEIGHT - 70;
 
     // text
-    let subtitlesTxt = 'Total time:\n\nRemaining jumps:\nRemaining energy:\nWords score:\nTotal score:';
-    let subtitles = game.add.text(STAGE_WIDTH/4, STAGE_HEIGHT*0.2, subtitlesTxt, {
+    let subtitlesTxt = 'Total time:\n\nRemaining jumps:\nRemaining energy:\nWords score:\nNuts collected:\n\nTotal score:';
+    let subtitles = game.add.text(STAGE_WIDTH/4, STAGE_HEIGHT*0.1, subtitlesTxt, {
         fontSize: '20pt',
         font: font_time
     });
@@ -38,7 +39,7 @@ function createEnd(){
     // Total time elapsed
     let time_text = String(Math.trunc(total_time / 60)).padStart(2, "0") + ':'
     + String(total_time % 60).padStart(2, "0");
-    let time = game.add.text(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.2, time_text, {
+    let time = game.add.text(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.1, time_text, {
         fontSize: '20pt',
         font: font_time
     });
@@ -49,15 +50,15 @@ function createEnd(){
     time.smoothed = false;
 
     // remaining jumps from zone A
-    let jumps = game.add.image(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.3, 'jumpsSS', currentJump);
+    let jumps = game.add.image(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.2, 'jumpsSS', currentJump);
     jumps.anchor.setTo(1, 0);
 
     // remaining energy from zone B
-    let energy = game.add.image(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.4, 'energySS', EnergyValue);
+    let energy = game.add.image(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.3, 'energySS', EnergyValue);
     energy.anchor.setTo(1, 0);
 
     // score from zone C
-    let wordScore = game.add.text(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.5, scorePalabras, {
+    let wordScore = game.add.text(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.4, scorePalabras, {
         fontSize: '20pt',
         font: font_time
     });
@@ -67,9 +68,24 @@ function createEnd(){
     wordScore.fill = '#ffffff';
     wordScore.smoothed = false;
 
+    // Nuts collected
+    let nutImg = game.add.image(STAGE_WIDTH*3/4 - 20, STAGE_HEIGHT*0.5, 'nutHUD');
+    nutImg.anchor.setTo(1, 0);
+    nutImg.scale.setTo(0.7);
+
+    let totalNuts = game.add.text(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.5 + 20, "x" + scoreNut, {
+        fontSize: '20pt',
+        font: font_time
+    });
+    totalNuts.anchor.setTo(1, 0);
+    totalNuts.stroke = '#000000';
+    totalNuts.strokeThickness = 8;
+    totalNuts.fill = '#ffffff';
+    totalNuts.smoothed = false;
+
     // Total score
-    let totalScore = EnergyValue + currentJump + scorePalabras;
-    let totalScoreTxt = game.add.text(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.6, totalScore, {
+    let totalScore = EnergyValue + currentJump + scorePalabras + scoreNut;
+    let totalScoreTxt = game.add.text(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.65, totalScore, {
         fontSize: '20pt',
         font: font_time
     });
@@ -94,6 +110,7 @@ function createEnd(){
     EnergyValue = MAX_ENERGY;
     squirrel_initial_x = GLOBAL_INITAL_X;
     squirrel_initial_y = WORLD_HEIGHT - 150;
+
 }
 
 function returnHome(){
