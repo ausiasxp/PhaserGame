@@ -16,7 +16,7 @@ const JUMP = 600;
 const SQUIRREL_VELOCITY = 300;
 const font_sign = 'Sniglet';
 const font_time = 'sniglet';
-const GLOBAL_INITAL_X = 10000;
+const GLOBAL_INITAL_X = 32;
 
 //game states
 const PLATFORMER = 0;
@@ -77,6 +77,7 @@ let currentJump = MAX_JUMPS;
 let WallAB;
 let jumpsHUD;
 let sign, signGroup, rect, signText, signTextContainer;
+let movingPlat;
 
 // AVOID ENEMIES
 let EnergyValue = MAX_ENERGY;
@@ -592,9 +593,15 @@ function setPlatformsInfront(){
     ledge = platforms.create(1005, WORLD_HEIGHT - 650, 'groundr');
     ledge.body.immovable = true;
 
-    //branch6
+/*     //branch6
     ledge = platforms.create(1315, WORLD_HEIGHT - 600, 'groundr');
-    ledge.body.immovable = true;
+    ledge.body.immovable = true; */
+
+    // MOVING PLATFORM
+    movingPlat = game.add.sprite(1100, WORLD_HEIGHT - 650, 'platform4');
+    game.physics.arcade.enable(movingPlat);
+    movingPlat.body.immovable = true;
+    movingPlat.body.velocity.x = 100;
 
     //treebg5
     bgtree = bgplatformInfront.create(1938, game.world.height - 935, 'tree');
@@ -602,9 +609,9 @@ function setPlatformsInfront(){
     bush = bgplatformInfront.create(1768, WORLD_HEIGHT - BUSH_HEIGHT, 'bush');
     bush.scale.setTo(0.75, 0.75);
 
-    //branch7
+/*     //branch7
     ledge = platforms.create(1425, WORLD_HEIGHT - 550, 'groundr');
-    ledge.body.immovable = true;
+    ledge.body.immovable = true; */
 
     //branch8
     ledge = platforms.create(1685, WORLD_HEIGHT - 450, 'groundr');
@@ -689,6 +696,7 @@ function updatePlay(){
     let hitPlatform = game.physics.arcade.collide(squirrel, platforms);
     let hitGround = game.physics.arcade.collide(squirrel, ground);
     let hitWall = game.physics.arcade.collide(squirrel, wallAB);
+    let hitMovPlat = game.physics.arcade.collide(squirrel, movingPlat);
 
     if(gameState != WORD_GAME){
         //  Reset the players velocity (movement)
@@ -713,7 +721,7 @@ function updatePlay(){
 
         // Allow the player to jump if they are touching the ground and haven't used all of their jumps
         if(gameState == PLATFORMER && currentJump > 0){
-            if (cursors.up.isDown && squirrel.body.touching.down && (hitPlatform || hitGround || hitWall)) {
+            if (cursors.up.isDown && squirrel.body.touching.down && (hitPlatform || hitGround || hitWall || hitMovPlat)) {
                 squirrel.body.velocity.y = -JUMP;
                 squirrel.animations.stop();
                 squirrel.frame = 1;
@@ -729,6 +737,7 @@ function updatePlay(){
             }
 
             manageSign();
+            manageMovingPlat();
         }
         // If we are in the second part, jump normally
         else if(gameState == AVOID_ENEMIES){
@@ -798,6 +807,15 @@ function updatePlay(){
             timeRemaining = TIEMPO_PALABRAS;
             word = "";
         }     
+    }
+}
+
+function manageMovingPlat(){
+    if(movingPlat.x >= 1600){
+        movingPlat.body.velocity.x = -100;
+    } else if(movingPlat.x <= 1100){
+        movingPlat.body.velocity.x = 100;
+
     }
 }
 
