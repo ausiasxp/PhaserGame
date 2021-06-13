@@ -1,7 +1,4 @@
 // PENDIENTE
-// transiciones
-// plataformas movible
-// Nivel optativo
 // Hacer que las ardillas dejen de spawnear antes de lo de las palabras: hay un bug que si te pegan y entras
 //   en el juego de las palabras la imagen no está centrada
 // Hacer que se quite la interfaz de plataformeo durante el juego de las palabras
@@ -886,6 +883,7 @@ function eaglesMovement(eagle){
 function enemyHitsSquirrel(squirrel, enemy){
 
     cry.play();
+    game.camera.flash(0xff0000, 500);
     EnergyValue = Math.max(0, EnergyValue - 1);
     energyHUD.frame = EnergyValue;
     squirrel.body.x += enemy.width + 10;

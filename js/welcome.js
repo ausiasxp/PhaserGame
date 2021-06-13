@@ -1,5 +1,8 @@
 const STAGE_WIDTH = 800;
 const STAGE_HEIGHT = 600;
+const FREQUENCY = 1000/30;
+
+let squirrelWelcome;
 
 let initialState = {
     preload: loadAssets,
@@ -12,6 +15,8 @@ function loadAssets(){
     game.load.image('aboutButton', 'assets/images/button_about.png');
     game.load.image('title', 'assets/images/game-name.png');
     game.load.image('rect', 'assets/images/rectangle_about.png');
+    game.load.spritesheet('squirrel', 'assets/images/squirrelWelcome.png', 32, 32); 
+    game.load.image('ground', 'assets/images/ground.png');
 }
 
 function displayScreen(){
@@ -26,6 +31,14 @@ function displayScreen(){
 
     let title = game.add.image(STAGE_WIDTH/2, 170, 'title');
     title.anchor.setTo(0.5, 0.5);
+
+    squirrelWelcome = game.add.sprite(70, STAGE_HEIGHT - 70, 'squirrel', 0);
+    squirrelWelcome.anchor.setTo(0.5, 1);
+    squirrelWelcome.scale.setTo(2.5);
+    squirrelWelcome.smoothed = false;
+    squirrelWelcome.animations.add('walk', [32, 33, 34], 10, true);
+
+    game.add.tileSprite(0, squirrelWelcome.y - 16, STAGE_WIDTH, 100, 'ground');
 
     showAuthors();
     showButtons();
@@ -46,7 +59,7 @@ function showAuthors(){
 }
 
 function showButtons(){
-    let btnPlay = game.add.button(STAGE_WIDTH / 2 , STAGE_HEIGHT / 3 *2,
+    let btnPlay = game.add.button(STAGE_WIDTH / 2 , STAGE_HEIGHT*0.5,
         'playButton', onPlayButtonPressed);
     btnPlay.anchor.setTo(0.5, 0.5);
     let btnAbout = game.add.button(btnPlay.x, btnPlay.y + btnPlay.height + 30,
@@ -59,5 +72,14 @@ function onAboutButtonPressed() {
 }
 
 function onPlayButtonPressed() {
-    game.state.start('play');
+    game.time.events.loop(FREQUENCY, moveSquirrel, this);
+    squirrelWelcome.animations.play('walk');
 }
+
+function moveSquirrel(){
+    squirrelWelcome.x += 10;
+    if(squirrelWelcome.x > STAGE_WIDTH){
+        game.state.start('play');
+    }
+}
+

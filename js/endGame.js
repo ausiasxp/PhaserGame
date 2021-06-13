@@ -110,7 +110,12 @@ function createEnd(){
     EnergyValue = MAX_ENERGY;
     squirrel_initial_x = GLOBAL_INITAL_X;
     squirrel_initial_y = WORLD_HEIGHT - 150;
-
+    music = false;
+    music2 = false;
+    music3 = false;
+    soundMusic.destroy();
+    soundMusic2.destroy();
+    soundMusic3.destroy();
 }
 
 function returnHome(){
