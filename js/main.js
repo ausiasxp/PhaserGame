@@ -11,8 +11,8 @@ let wfConfig = {
     },
 
     custom: {
-        families: ['orange_juice', 'alone_on_earth'],
-        urls: ['../assets/fonts/orange juice 2.0.ttf', '../assets/fonts/CFAloneontheEarthDEMO-Regul.ttf']
+        families: ['orange_juice', 'sketchtica'],
+        urls: ['../assets/fonts/orange juice 2.0.ttf', '../assets/fonts/Sketchica.ttf']
     }
 };
 

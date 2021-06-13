@@ -49,7 +49,10 @@ const PLAYER_COLLIDE_OFFSET_X = 200;
 
 // WORD GAME
 const TIEMPO_PALABRAS = 40;
-const SPIDER_PROBABILITY = 0.7;
+
+//NUT CATCHER
+const SPIDER_PROBABILITY = 0.3;
+const NUTS_SECONDS = 30;
 
 
 // GLOBAL 
@@ -106,7 +109,7 @@ let charText;
 
 var timerPalabras;
 var timerTextPalabras;
-var timeRemaining = 10;
+var timeRemaining = TIEMPO_PALABRAS;
 var scorePalabras = 0;
 var scorePalabrasText;
 
@@ -128,8 +131,10 @@ let generadorNut;
 let firsNut;
 let scoreNut;
 let scoreNutHUD, nutHUD;
-let nutSnd;
+let nutSnd, droppedSnd;
 let fallingSpider;
+let nutsTimer = NUTS_SECONDS;
+let nutsTimerTxt;
 
 //////////////////////
 
@@ -186,6 +191,7 @@ function loadPlayAssets(){
     game.load.image('nutHUD', 'assets/images/nutsHUD.png');
     game.load.audio('nutCatched', 'assets/sounds/nutCatched.wav');
     game.load.spritesheet('spider', 'assets/images/Spider Sprite Sheet.png', 32, 32);
+    game.load.audio('dropped', 'assets/sounds/droppedNut.wav');
 }
 
 function createPlay(){
@@ -226,6 +232,7 @@ function createPlay(){
     foxCall = game.add.audio('foxCall');
     cry = game.add.audio('cry');
     nutSnd = game.add.audio('nutCatched', 0.7);
+    droppedSnd = game.add.audio('dropped', 0.7);
     
     // Remaining jumps HUD
     let allX = 50;
@@ -362,6 +369,18 @@ function createPlay(){
     scoreNutHUD.stroke = '#000000';
     scoreNutHUD.strokeThickness = 8;
     scoreNutHUD.fill = '#ffffff';    
+
+
+    nutsTimerTxt = game.add.text(STAGE_WIDTH - 60, 30, String(nutsTimer).padStart(2, "0"), {
+        fontSize: '20pt',
+        font: font_time
+    });
+    nutsTimerTxt.fixedToCamera = true;
+    nutsTimerTxt.anchor.setTo(0.5, 0);
+    nutsTimerTxt.stroke = '#000000';
+    nutsTimerTxt.strokeThickness = 8;
+    nutsTimerTxt.fill = '#ffffff';
+    nutsTimerTxt.visible = false;
 }
 
 function createBG(){
@@ -384,6 +403,10 @@ function updateTime(){
     let minutes = String(Math.trunc(total_time / 60)).padStart(2, "0");
     let seconds = String(total_time % 60).padStart(2, "0");
     total_timeHUD.setText(minutes + ':' + seconds);
+    if(gameState == NUT_CATCHER){
+        nutsTimer -= 1;
+        nutsTimerTxt.setText(String(nutsTimer).padStart(2, "0"));
+    }
 }
 
 function createSign(){
@@ -716,6 +739,7 @@ function updatePlay(){
     if(squirrel.x > LEVEL_X_ORIGIN + 5000 && gameState === NUT_CATCHER){
         game.camera.deadzone = new Phaser.Rectangle(0, 0, 0, 0);
         squirrel_initial_x = LEVEL_X_ORIGIN + 5100;
+        nutsTimerTxt.visible = true;
     }
 
 
@@ -831,7 +855,8 @@ function updatePlay(){
 
         if(timeRemaining < 1){
             palabraActual = nuevaPalabra(misPalabras);
-            scorePalabras -= 100;
+            //scorePalabras -= 100;
+            scorePalabras = Math.max(scorePalabras - 100, 0);
             timeRemaining = TIEMPO_PALABRAS;
             word = "";
         }     
@@ -1075,7 +1100,7 @@ function keyPress(char){
             //score si la palabra es mal
             else {
                 wrongSF.play();
-                scorePalabras -= 100;
+                scorePalabras = Math.max(scorePalabras - 100, 0);
             }
             word = "";
             timeRemaining = TIEMPO_PALABRAS;
@@ -1134,23 +1159,23 @@ function nutOrSpiderCaught(squirrel, object){
     } else if(object === fallingSpider){
         fallingSpider.y = -50;
         scoreNut = Math.max(scoreNut - 1, 0);
-        cry.play();
+        droppedSnd.play();
         EnergyValue = Math.max(0, EnergyValue - 1);
 
-    energyHUD.frame = EnergyValue;
+/*     energyHUD.frame = EnergyValue;
     if (EnergyValue === 0){
         game.camera.fade(0xff0000, 500);
         game.camera.onFadeComplete.add(gameOver, this);
     } else {
         game.camera.flash(0xff0000, 500);
-    }
+    } */
 
     }
 
     scoreNutHUD.setText("x"+scoreNut);
     
 
-    if(scoreNut > 5){   //temporal
+    if(nutsTimer < 1){   //temporal
         endNutCatcher();
     }
 }

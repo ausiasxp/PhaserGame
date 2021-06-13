@@ -116,6 +116,7 @@ function createEnd(){
     soundMusic.destroy();
     soundMusic2.destroy();
     soundMusic3.destroy();
+    nutsTimer = NUTS_SECONDS;
 }
 
 function returnHome(){

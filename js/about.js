@@ -1,5 +1,5 @@
 const game_name = 'nut catcher';
-const font_instructions = 'bold alone_on_earth';
+const font_instructions = 'bold sketchtica';
 const font_title = 'orange_juice';
 
 let aboutState = {
@@ -37,8 +37,8 @@ function showInstructions(){
     // Add the instructions
     let instructions = 'Control the squirrel with the arrow keys.';
     instructions += '\nHelp the squirrel through its way home.';
-    instructions += '\nYou have to jump over branches, try not to get eaten by predators';
-    instructions += ', guess different types of nuts and finally collect all the nuts you can!';
+    instructions += '\nYou have to jump over branches, try not to get eaten by predators. If you get eaten, your energy will be decreased by one.';
+    instructions += " Guess different types of nuts to sum up points. And finally collect all the nuts you can. (Don't let those sneaky spiders steal your precious nuts)";
 
     let instrucText = game.add.text(0, 0, instructions, {
         font: font_instructions,
@@ -47,11 +47,12 @@ function showInstructions(){
     });
 
     //instrucText.anchor.setTo(0.5, 0.5);
-    instrucText.setTextBounds(30, 230, STAGE_WIDTH - 50);
+    instrucText.setTextBounds(30, 250, STAGE_WIDTH - 50);
     instrucText.boundsAlignH = 'center';
     instrucText.boundsAlignV = 'middle';
     instrucText.wordWrap = true;
     instrucText.wordWrapWidth = STAGE_WIDTH - 60;
+    instrucText.smoothed = false;
 
     let btnBack = game.add.button(STAGE_WIDTH / 2, STAGE_HEIGHT - 60, 'backButton',
     onBackButtonPressed);
