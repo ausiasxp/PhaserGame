@@ -1106,7 +1106,7 @@ function keyPress(char){
             timeRemaining = TIEMPO_PALABRAS;
 
             //comprobamos si hemos encontrado todas las palabras
-            if (wordsFound == 1) endPalabras(); //if (wordsFound == misPalabras.length) endPalabras(); Test
+            if (wordsFound == misPalabras.length) endPalabras(); 
             else palabraActual = nuevaPalabra(misPalabras);
         }
     }
