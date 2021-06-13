@@ -718,6 +718,7 @@ function updatePlay(){
 
     if(squirrel.x > LEVEL_X_ORIGIN + 5000 && gameState === NUT_CATCHER){
         game.camera.deadzone = new Phaser.Rectangle(0, 0, 0, 0);
+        squirrel_initial_x = LEVEL_X_ORIGIN + 5100;
     }
 
 
@@ -889,13 +890,7 @@ function enemyHitsSquirrel(squirrel, enemy){
     energyHUD.frame = EnergyValue;
     squirrel.body.x += enemy.width + 10;
 
-
-    if (EnergyValue === 0){
-        game.camera.fade(0xff0000, 500);
-        game.camera.onFadeComplete.add(gameOver, this);
-    } else {
-        game.camera.flash(0xff0000, 500);
-    }
+    
 }
 
 function gameOver(){
@@ -925,7 +920,12 @@ function restart(){
         energyHUD.frame = EnergyValue;
         eagles.callAll('kill');
         foxes.callAll('kill');        
-    }    
+    }else if(gameState == AVOID_ENEMIES){
+        EnergyValue = 6;
+        energyHUD.frame = EnergyValue;
+        
+
+    }
 }
 
 function endGame(){
@@ -1137,7 +1137,16 @@ function nutOrSpiderCaught(squirrel, object){
         fallingSpider.y = -50;
         scoreNut = Math.max(scoreNut - 1, 0);
         cry.play();
+        EnergyValue = Math.max(0, EnergyValue - 1);
+
+    energyHUD.frame = EnergyValue;
+    if (EnergyValue === 0){
+        game.camera.fade(0xff0000, 500);
+        game.camera.onFadeComplete.add(gameOver, this);
+    } else {
         game.camera.flash(0xff0000, 500);
+    }
+
     }
 
     scoreNutHUD.setText("x"+scoreNut);
