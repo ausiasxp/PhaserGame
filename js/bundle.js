@@ -1,3 +1,401 @@
+// WELCOME
+const STAGE_WIDTH = 800;
+const STAGE_HEIGHT = 600;
+const FREQUENCY = 1000/30;
+
+let squirrelWelcome;
+
+let initialState = {
+    preload: loadAssets,
+    create: displayScreen
+};
+
+function loadAssets(){
+    game.load.image('bg', 'assets/images/welcomeBG.png');
+    game.load.image('playButton', 'assets/images/button_play.png');
+    game.load.image('aboutButton', 'assets/images/button_about.png');
+    game.load.image('title', 'assets/images/game-name.png');
+    game.load.image('rect', 'assets/images/rectangle_about.png');
+    game.load.spritesheet('squirrel', 'assets/images/squirrelWelcome.png', 32, 32); 
+    game.load.image('ground', 'assets/images/ground.png');
+}
+
+function displayScreen(){
+    game.input.enabled = true;
+    let bg = game.add.image(0, 0, 'bg');
+    bg.height = STAGE_HEIGHT;
+
+    let rect = game.add.image(-10, 120, 'rect');
+    rect.height = 100;
+    rect.width = STAGE_WIDTH + 30;
+    rect.alpha = 0.8;
+
+    let title = game.add.image(STAGE_WIDTH/2, 170, 'title');
+    title.anchor.setTo(0.5, 0.5);
+
+    squirrelWelcome = game.add.sprite(70, STAGE_HEIGHT - 70, 'squirrel', 0);
+    squirrelWelcome.anchor.setTo(0.5, 1);
+    squirrelWelcome.scale.setTo(2.5);
+    squirrelWelcome.smoothed = false;
+    squirrelWelcome.animations.add('walk', [32, 33, 34], 10, true);
+
+    game.add.tileSprite(0, squirrelWelcome.y - 16, STAGE_WIDTH, 100, 'ground');
+
+    showAuthors();
+    showButtons();
+}
+
+function showAuthors(){
+    let msgAuthors = 'Ausias García Torres\nVanessa Jiménez Tarazona\nJosaem Silva Sanmiguel';
+    let styleAuthors = {
+        font: '12pt Sniglet',
+        fill: '#FFFFFF',
+    };
+
+    let authorsTxt = game.add.text(STAGE_WIDTH - 200, STAGE_HEIGHT -100, msgAuthors, styleAuthors);
+    authorsTxt.fixedToCamera = true;
+    authorsTxt.stroke = '#000000';
+    authorsTxt.strokeThickness = 3;
+    authorsTxt.fill = '#ffffff';
+}
+
+function showButtons(){
+    let btnPlay = game.add.button(STAGE_WIDTH / 2 , STAGE_HEIGHT*0.5,
+        'playButton', onPlayButtonPressed);
+    btnPlay.anchor.setTo(0.5, 0.5);
+    let btnAbout = game.add.button(btnPlay.x, btnPlay.y + btnPlay.height + 30,
+        'aboutButton', onAboutButtonPressed);
+    btnAbout.anchor.setTo(0.5, 0.5);
+}
+
+function onAboutButtonPressed() {
+    game.state.start('about');
+}
+
+function onPlayButtonPressed() {
+    game.time.events.loop(FREQUENCY, moveSquirrel, this);
+    squirrelWelcome.animations.play('walk');
+}
+
+function moveSquirrel(){
+    squirrelWelcome.x += 10;
+    if(squirrelWelcome.x > STAGE_WIDTH){
+        game.state.start('play');
+    }
+}
+
+// END GAME
+let endState = {
+    preload: loadEnd,
+    create: createEnd
+}
+
+function loadEnd(){
+    game.load.image('bg', 'assets/images/welcomeBG.png');
+    game.load.spritesheet('energySS', 'assets/images/energyUI.png', 88, 64);
+    game.load.spritesheet('jumpsSS', 'assets/images/jumpsUI.png', 96, 64);
+    game.load.image('textBg', 'assets/images/rectangle_about.png');
+    game.load.image('homeBtn', 'assets/images/button_home.png');
+    game.load.image('replayBtn', 'assets/images/button_play-again.png');
+    game.load.image('nutHUD', 'assets/images/nutsHUD.png');
+}
+
+function createEnd(){
+    bg = game.add.image(0, 0, 'bg');
+    bg.width = STAGE_WIDTH;
+    bg.height = STAGE_HEIGHT;
+
+    let rect = game.add.image(STAGE_WIDTH/2, 15, 'textBg');
+    rect.anchor.setTo(0.5, 0);
+    rect.alpha = 0.8;
+    rect.width = STAGE_WIDTH - 30;
+    rect.height = STAGE_HEIGHT - 70;
+
+    // text
+    let subtitlesTxt = 'Total time:\n\nRemaining jumps:\nRemaining energy:\nWords score:\nNuts collected:\n\nTotal score:';
+    let subtitles = game.add.text(STAGE_WIDTH/4, STAGE_HEIGHT*0.1, subtitlesTxt, {
+        fontSize: '20pt',
+        font: font_time
+    });
+    subtitles.anchor.setTo(0, 0);
+    subtitles.stroke = '#000000';
+    subtitles.strokeThickness = 8;
+    subtitles.fill = '#ffffff';
+    subtitles.smoothed = false;
+
+    // Total time elapsed
+    let time_text = String(Math.trunc(total_time / 60)).padStart(2, "0") + ':'
+    + String(total_time % 60).padStart(2, "0");
+    let time = game.add.text(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.1, time_text, {
+        fontSize: '20pt',
+        font: font_time
+    });
+    time.anchor.setTo(1, 0);
+    time.stroke = '#000000';
+    time.strokeThickness = 8;
+    time.fill = '#ffffff';
+    time.smoothed = false;
+
+    // remaining jumps from zone A
+    let jumps = game.add.image(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.2, 'jumpsSS', currentJump);
+    jumps.anchor.setTo(1, 0);
+
+    // remaining energy from zone B
+    let energy = game.add.image(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.3, 'energySS', EnergyValue);
+    energy.anchor.setTo(1, 0);
+
+    // score from zone C
+    let wordScore = game.add.text(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.4, scorePalabras, {
+        fontSize: '20pt',
+        font: font_time
+    });
+    wordScore.anchor.setTo(1, 0);
+    wordScore.stroke = '#000000';
+    wordScore.strokeThickness = 8;
+    wordScore.fill = '#ffffff';
+    wordScore.smoothed = false;
+
+    // Nuts collected
+    let nutImg = game.add.image(STAGE_WIDTH*3/4 - 20, STAGE_HEIGHT*0.5, 'nutHUD');
+    nutImg.anchor.setTo(1, 0);
+    nutImg.scale.setTo(0.7);
+
+    let totalNuts = game.add.text(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.5 + 20, "x" + scoreNut, {
+        fontSize: '20pt',
+        font: font_time
+    });
+    totalNuts.anchor.setTo(1, 0);
+    totalNuts.stroke = '#000000';
+    totalNuts.strokeThickness = 8;
+    totalNuts.fill = '#ffffff';
+    totalNuts.smoothed = false;
+
+    // Total score
+    let totalScore = EnergyValue + currentJump + scorePalabras + scoreNut;
+    let totalScoreTxt = game.add.text(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.65, totalScore, {
+        fontSize: '20pt',
+        font: font_time
+    });
+    totalScoreTxt.anchor.setTo(1, 0);
+    totalScoreTxt.stroke = '#000000';
+    totalScoreTxt.strokeThickness = 8;
+    totalScoreTxt.fill = '#ffffff';
+    totalScoreTxt.smoothed = false;
+
+    // home button
+    let homeBtn = game.add.button(STAGE_WIDTH/4, STAGE_HEIGHT*0.8, 'homeBtn', returnHome);
+    homeBtn.anchor.setTo(0.5, 0.5);
+
+    // Replay button
+    let replayBtn = game.add.button(STAGE_WIDTH*3/4, STAGE_HEIGHT*0.8, 'replayBtn', replay);
+    replayBtn.anchor.setTo(0.5, 0.5);
+
+    // Reset variables fro next games
+    gameState = PLATFORMER;
+    total_time = 0;
+    currentJump = MAX_JUMPS;
+    EnergyValue = MAX_ENERGY;
+    squirrel_initial_x = GLOBAL_INITAL_X;
+    squirrel_initial_y = WORLD_HEIGHT - 150;
+    music = false;
+    music2 = false;
+    music3 = false;
+    soundMusic.destroy();
+    soundMusic2.destroy();
+    soundMusic3.destroy();
+    nutsTimer = NUTS_SECONDS;
+}
+
+function returnHome(){
+    game.state.start('welcome');
+}
+
+function replay(){
+    game.state.start('play');
+}
+
+// ABOUT
+const game_name = 'nut catcher';
+const font_instructions = 'bold sketchtica';
+const font_title = 'orange_juice';
+
+let aboutState = {
+    preload: loadAboutAssets,
+    create: showInstructions
+};
+
+function loadAboutAssets(){
+    game.load.image('backButton', 'assets/images/button_back.png');
+    game.load.image('textBg', 'assets/images/rectangle_about.png');
+}
+
+function showInstructions(){
+    bg = game.add.image(0, 0, 'bg');
+    bg.width = STAGE_WIDTH;
+    bg.height = STAGE_HEIGHT;
+
+    let rect = game.add.image(STAGE_WIDTH/2, 15, 'textBg');
+    rect.anchor.setTo(0.5, 0);
+    rect.alpha = 0.8;
+    rect.width = STAGE_WIDTH - 30;
+    rect.height = STAGE_HEIGHT - 130;
+
+    // Add the title
+    let textTitle = game_name;
+    let styleTitle = {
+        font: font_title,
+        fontSize: '60pt',
+        fill: '#521b00',
+    };
+
+    let title = game.add.text(STAGE_WIDTH/2, 80, textTitle, styleTitle);
+    title.anchor.setTo(0.5, 0.5);
+
+    // Add the instructions
+    let instructions = 'Control the squirrel with the arrow keys.';
+    instructions += '\nHelp the squirrel through its way home.';
+    instructions += '\nYou have to jump over branches, try not to get eaten by predators. If you get eaten, your energy will be decreased by one.';
+    instructions += " Guess different types of nuts to sum up points. And finally collect all the nuts you can. (Don't let those sneaky spiders steal your precious nuts)";
+
+    let instrucText = game.add.text(0, 0, instructions, {
+        font: font_instructions,
+        fontSize: '20pt',
+        fill: '#240c00'
+    });
+
+    //instrucText.anchor.setTo(0.5, 0.5);
+    instrucText.setTextBounds(30, 250, STAGE_WIDTH - 50);
+    instrucText.boundsAlignH = 'center';
+    instrucText.boundsAlignV = 'middle';
+    instrucText.wordWrap = true;
+    instrucText.wordWrapWidth = STAGE_WIDTH - 60;
+    instrucText.smoothed = false;
+
+    let btnBack = game.add.button(STAGE_WIDTH / 2, STAGE_HEIGHT - 60, 'backButton',
+    onBackButtonPressed);
+    btnBack.anchor.setTo(0.5, 0.5);
+}
+
+function onBackButtonPressed(){
+    game.state.start('welcome');
+}
+
+// AVOID ENEMIES FUNCTIONS
+
+
+function loadPlayAssetsAvoidEnemies(){
+    loadSprites();
+    loadImages();
+    loadSounds();
+}
+
+function loadSprites() {
+    game.load.spritesheet('eagleSpriteSheet', 'assets/images/bird_2_eagleSS.png', 84, 108);
+    game.load.spritesheet('squirrelSpritesheet', 'assets/images/squirrel.png', 64, 52);
+    game.load.spritesheet('foxSpritesheet', 'assets/images/fox.png', 160, 160);
+    game.load.spritesheet('HUDenergy', 'assets/images/energyUI.png', 88, 64);
+}
+
+function loadImages(){
+    game.load.image('ground', 'assets/images/ground.png');
+    game.load.image('fox', '/assets/images/fox.png');
+    game.load.image('gameOver', 'assets/images/gameOver.png');
+    game.load.image('playButton', 'assets/images/button_play.png');
+    game.load.image('platform1', 'assets/images/platform1.png');
+    game.load.image('platform2', 'assets/images/platform2.png');
+    game.load.image('platform3', 'assets/images/platform3.png');
+    game.load.image('platform4', 'assets/images/platform4.png');
+    game.load.image('platform5', 'assets/images/platform5.png');
+}
+
+function loadSounds(){
+    game.load.audio('foxCall', 'assets/sounds/fox.mp3');
+}
+
+function createPlayAvoidEnemies(){
+    createEagles(EAGLES_GROUP_SIZE);
+    createFoxes(FOXES_GROUP_SIZE);
+}
+
+function createEagles(number){
+    eagles = game.add.group();
+    eagles.enableBody = true;
+    eagles.createMultiple(number, 'eagleSpriteSheet');
+    eagles.callAll('animations.add', 'animations', 'fly', [0, 1, 2], 8, true);
+    eagles.callAll('events.onOutOfBounds.add', 'events.onOutOfBounds', resetMember);    
+    eagles.callAll('anchor.setTo', 'anchor', 0.5, 1.0);
+    eagles.setAll('checkWorldBounds', true);
+
+    currentEagleProbability = EAGLE_PROBABILITY;
+    currentEagleVelocity = EAGLE_VELOCITY;
+        game.time.events.loop(TIMER_RYTHM, activateEagle, this);
+
+}
+
+function activateEagle(){
+    if(gameState == AVOID_ENEMIES){
+        if(Math.random() < currentEagleProbability){
+            let eagle = eagles.getFirstExists(false);
+            if(eagle){
+                let gh = STAGE_HEIGHT;
+                let uh = eagle.body.height;
+                let h = gh - uh;
+                let y = Math.floor(Math.random()*h);
+                let z = uh / 2 + y;
+                let x = Math.max(squirrel.body.x + STAGE_WIDTH/2, STAGE_WIDTH);
+                eagle.reset(x, z);
+                eagle.body.velocity.x = -currentEagleVelocity;
+                let velY = Math.round(Math.random()) == 1? 70 : -70;
+                eagle.body.velocity.y = velY;
+                eagle.animations.play('fly');
+            }
+        }        
+    }
+
+}
+
+function createFoxes(number){
+    foxes = game.add.group();
+    foxes.enableBody = true;
+    foxes.createMultiple(number, 'foxSpritesheet');
+    foxes.callAll('animations.add', 'animations', 'walk', [26, 27, 28, 29 ,30, 31, 32, 33], 8, true);
+    foxes.callAll('animations.add', 'animations', 'jump', [42, 43, 44], 3, false);
+    foxes.callAll('events.onOutOfBounds.add', 'events.onOutOfBounds', resetMember);
+
+    // Adjust bounding box
+    foxes.callAll('body.setSize', 'body', 100, 80, 30, 80);
+
+    // Add Physics
+    game.physics.arcade.enable(foxes);
+    foxes.setAll('body.gravity.y', GRAVITY);
+
+    foxes.callAll('anchor.setTo', 'anchor', 0.5, 1.0);
+    foxes.setAll('body.checkWorldBounds', true);
+    game.time.events.loop(TIMER_RYTHM, activateFoxes, this);
+
+}
+
+function resetMember(item){
+    item.kill();
+}
+
+function activateFoxes(){
+    if(gameState == AVOID_ENEMIES){
+        if(Math.random() < FOXES_PROBABILITY){
+            let fox = foxes.getFirstExists(false);
+            if(fox){
+                let x = Math.max(squirrel.body.x + STAGE_WIDTH/2, STAGE_WIDTH);
+                fox.reset(x, WORLD_HEIGHT - 80);
+                fox.body.velocity.x = -FOXES_VELOCITY;
+                //fox.body.velocity.y = -FOXES_VELOCITY_Y;
+                fox.animations.play('walk');
+            }
+        }        
+    }
+
+}
+
+// PLAY
 // PENDIENTE
 // Hacer que las ardillas dejen de spawnear antes de lo de las palabras: hay un bug que si te pegan y entras
 //   en el juego de las palabras la imagen no está centrada
@@ -1177,4 +1575,41 @@ function nutOrSpiderCaught(squirrel, object){
     if(nutsTimer < 1){   //temporal
         endNutCatcher();
     }
+}
+
+// MAIN
+
+let game;
+
+let wfConfig = {
+    active: function () {
+        startGame();
+    },
+
+    google: {
+        families: ['Sniglet']
+    },
+
+    custom: {
+        families: ['orange_juice', 'sketchtica'],
+        urls: ['../assets/fonts/orange juice 2.0.ttf', '../assets/fonts/Sketchica.ttf']
+    }
+};
+
+WebFont.load(wfConfig);
+
+function startGame() {
+    game = new Phaser.Game(STAGE_WIDTH, STAGE_HEIGHT, Phaser.CANVAS, 'GameStage');
+
+    // Welcome Screen
+    game.state.add('welcome', initialState);
+    // About Screen
+    game.state.add('about', aboutState);
+    // Play Screen
+    game.state.add('play', playState);
+    // End game screen
+    game.state.add('end', endState);
+
+    game.state.start('welcome');
+
 }
