@@ -396,11 +396,6 @@ function activateFoxes(){
 }
 
 // PLAY
-// PENDIENTE
-// Hacer que las ardillas dejen de spawnear antes de lo de las palabras: hay un bug que si te pegan y entras
-//   en el juego de las palabras la imagen no está centrada
-// Hacer que se quite la interfaz de plataformeo durante el juego de las palabras
-
 
 // GLOBAL
 const WORLD_WIDTH = 10500;
