@@ -64,6 +64,10 @@ let toRight = false;
 let cursors, spacebarKey;
 let soundMusic;
 let music = false;
+let soundMusic2;
+let music2 = false;
+let soundMusic3;
+let music3 = false;
 let squirrel_initial_x = GLOBAL_INITAL_X; 
 let squirrel_initial_y = WORLD_HEIGHT - 150;
 let total_time = 0, total_timeHUD, total_time_clock;
@@ -158,6 +162,8 @@ function loadPlayAssets(){
     game.load.image('signTextBg', 'assets/images/rectangle_about.png');
     game.load.audio('jump', 'assets/sounds/jump_04.wav');
     game.load.audio('music', 'assets/sounds/music.wav');
+    game.load.audio('music2', 'assets/sounds/music2.ogg');
+    game.load.audio('music3', 'assets/sounds/music3.mp3');
 
     game.load.spritesheet('jumpsHUD', 'assets/images/jumpsUI.png', 96, 64);
 
@@ -217,6 +223,8 @@ function createPlay(){
 
     // Sounds
     soundMusic = game.add.audio('music', 1, true);
+    soundMusic2 = game.add.audio('music2', 2, true);
+    soundMusic3 = game.add.audio('music3', 2, true);
     soundJump = game.add.audio('jump', 0.6);
     foxCall = game.add.audio('foxCall');
     cry = game.add.audio('cry');
@@ -653,11 +661,33 @@ function setPlatformsInfront(){
 
 function updatePlay(){
     // Manage background music
+    if(squirrel.x < LEVEL_X_ORIGIN && gameState === PLATFORMER){
      if (!music){
         soundMusic.play();
         soundMusic.loop = true;
         music = true;
     }
+}
+    if(squirrel.x > LEVEL_X_ORIGIN && gameState === AVOID_ENEMIES){
+        soundMusic.stop();
+        if (!music2){
+            soundMusic2.play();
+            soundMusic2.loop = true;
+            music2 = true;
+        }
+
+    }
+
+    if(squirrel.x > LEVEL_X_ORIGIN && gameState === NUT_CATCHER){
+        soundMusic2.stop();
+        if (!music3){
+            soundMusic3.play();
+            soundMusic3.loop = true;
+            music3 = true;
+        }
+
+    }
+
 
     // Parallax effect for the background
     bg_back.x = game.camera.x * 0.5;
